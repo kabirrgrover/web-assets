@@ -1,0 +1,271 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#ff<title>Emoji Nav</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+</head><body>
+<style>
+/* Layout: one quiet sheet like a personal-site header, the nav as the hero, a tuning panel and variants underneath */
+:root{
+  --bg:#f6f6f4; --sheet:#ffffff; --ink:#15161a; --muted:#6e727b; --rule:#e3e4e7;
+  --idle:#c3c7cf; --accent:#2f6bdc; --chip:#eeeff1; --code:#fbfbfa;
+  --body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101113; --sheet:#17181b; --ink:#efefec; --muted:#959aa4; --rule:#2a2c31;
+  --idle:#4b4f58; --accent:#7aa2f7; --chip:#23252a; --code:#141517; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101113; --sheet:#17181b; --ink:#efefec; --muted:#959aa4; --rule:#2a2c31;
+  --idle:#4b4f58; --accent:#7aa2f7; --chip:#23252a; --code:#141517; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:40px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+emoji-nav{--en-idle:var(--idle);--en-ink:var(--ink)}
+
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;font:13px/1.4 var(--mono);color:var(--muted)}
+.top b{color:var(--ink);font-weight:500}
+
+.stage{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;min-height:300px;display:grid;align-content:center;padding:56px clamp(16px,6vw,72px);position:relative;overflow:hidden}
+.stage emoji-nav{font-size:clamp(20px,3.2vw,28px);letter-spacing:-.005em}
+.stage .hint{position:absolute;left:clamp(16px,6vw,72px);bottom:18px;font:12px var(--mono);color:var(--muted)}
+.stage .hint kbd{font:inherit;background:var(--chip);border-radius:4px;padding:1px 5px}
+
+h1{font-size:clamp(28px,4vw,40px);line-height:1.1;letter-spacing:-.02em;font-weight:600;margin:0;text-wrap:balance}
+.lede{color:var(--muted);max-width:62ch;margin:10px 0 0}
+
+h2{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+
+.tune{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px}
+@media (max-width:760px){.tune{grid-template-columns:1fr}}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:18px;display:grid;gap:14px;min-width:0}
+.row{display:grid;grid-template-columns:108px minmax(0,1fr) 54px;align-items:center;gap:10px;font-size:13px}
+.row label{color:var(--muted)}
+.row output{font:12px var(--mono);text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;background:var(--chip);border-radius:8px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.row.wide{grid-template-columns:108px minmax(0,1fr)}
+.items{display:grid;gap:6px}
+.items div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:6px}
+.items input{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--rule);border-radius:7px;background:var(--code);color:var(--ink);min-width:0}
+.items input.e{text-align:center;font-size:16px;padding:4px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.check input{accent-color:var(--accent)}
+
+.preview{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;display:grid;grid-template-rows:auto 1fr;min-width:0;overflow:hidden}
+.preview .live{padding:40px 24px;display:grid;place-items:center start;border-bottom:1px solid var(--rule);min-height:140px}
+.codebox{position:relative;background:var(--code);min-width:0}
+pre{margin:0;padding:16px 18px;overflow-x:auto;font:12.5px/1.65 var(--mono);color:var(--ink)}
+.copy{position:absolute;top:10px;right:10px;font:12px var(--mono);border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:6px;padding:4px 9px;cursor:pointer}
+.tok-t{color:var(--accent)} .tok-a{color:var(--muted)}
+
+.variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.variants{grid-template-columns:1fr}}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:18px;display:grid;gap:14px;align-content:start;min-width:0}
+.card p{margin:0;font-size:13px;color:var(--muted)}
+.card .demo{min-height:150px;display:grid;align-content:center}
+.side emoji-nav{flex-direction:column;align-items:flex-start;gap:12px;font-size:17px}
+.foot{background:#141518;border-radius:9px;padding:22px 16px;--fi:#5b606a;--fk:#f4f3ee}
+.foot emoji-nav{--en-idle:var(--fi);--en-ink:var(--fk);--en-gap:1.6em;font-size:15px}
+.right emoji-nav{flex-direction:column;align-items:flex-start;gap:12px;font-size:17px;--en-tilt:8deg}
+
+.docs{display:grid;gap:10px;max-width:72ch}
+.docs table{border-collapse:collapse;font-size:13px;width:100%}
+.docs .tw{overflow-x:auto}
+.docs td,.docs th{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left;vertical-align:top}
+.docs th{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+code{font:12.5px var(--mono);background:var(--chip);border-radius:4px;padding:1px 5px;white-space:nowrap}
+</style>
+
+<div class="wrap">
+  <div class="top"><span><b>web-assets</b> / emoji-nav</span><span>v1.0 · Web Component · 0 dependencies</span></div>
+
+  <section class="stage" aria-label="Demo">
+    <emoji-nav>
+      <a href="#work" data-emoji="💼">Work</a>
+      <a href="#about" data-emoji="🙋">About</a>
+      <a href="#resume" data-emoji="📝">Resume</a>
+    </emoji-nav>
+    <span class="hint">hover, or <kbd>Tab</kbd> through the links</span>
+  </section>
+
+  <header>
+    <h1>Emoji Nav</h1>
+    <p class="lede">Links sit quiet in light grey. Point at one and it turns to ink while an emoji springs up beside it, tilted like a sticker. Wrap any links in <code>&lt;emoji-nav&gt;</code> and give each a <code>data-emoji</code>. Works with mouse, keyboard focus, and the current page.</p>
+  </header>
+
+  <section>
+    <h2>Tune it</h2>
+    <div class="tune">
+      <div class="panel">
+        <div class="row wide"><label>Emoji style</label>
+          <div class="seg" id="set"><button type="button" data-v="fluent" aria-pressed="true">Fluent 3D</button><button type="button" data-v="native" aria-pressed="false">System</button></div></div>
+        <div class="row wide"><label>Side</label>
+          <div class="seg" id="side"><button type="button" data-v="left" aria-pressed="true">Left</button><button type="button" data-v="right" aria-pressed="false">Right</button></div></div>
+        <div class="row"><label for="fs">Text size</label><input id="fs" type="range" min="14" max="40" step="1" value="24"><output id="fs-o"></output></div>
+        <div class="row"><label for="sz">Emoji size</label><input id="sz" type="range" min="1" max="2.2" step="0.05" value="1.45"><output id="sz-o"></output></div>
+        <div class="row"><label for="tilt">Resting tilt</label><input id="tilt" type="range" min="-20" max="20" step="1" value="-6"><output id="tilt-o"></output></div>
+        <div class="row"><label for="from">Springs from</label><input id="from" type="range" min="-60" max="0" step="1" value="-22"><output id="from-o"></output></div>
+        <div class="row"><label for="dur">Enter speed</label><input id="dur" type="range" min="120" max="700" step="10" value="300"><output id="dur-o"></output></div>
+        <div class="row"><label for="gap">Gap</label><input id="gap" type="range" min="1" max="4" step="0.1" value="2.4"><output id="gap-o"></output></div>
+        <label class="check"><input id="cur" type="checkbox"> Keep current page lit (About)</label>
+        <div class="items" id="items">
+          <div><input class="e" id="e0" value="💼" aria-label="Emoji 1"><input id="l0" value="Work" aria-label="Label 1"></div>
+          <div><input class="e" id="e1" value="🙋" aria-label="Emoji 2"><input id="l1" value="About" aria-label="Label 2"></div>
+          <div><input class="e" id="e2" value="📝" aria-label="Emoji 3"><input id="l2" value="Resume" aria-label="Label 3"></div>
+        </div>
+      </div>
+      <div class="preview">
+        <div class="live"><emoji-nav id="play"></emoji-nav></div>
+        <div class="codebox"><button class="copy" id="copy" type="button">Copy</button><pre id="code"></pre></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Variants</h2>
+    <div class="variants">
+      <div class="card side">
+        <div class="demo"><emoji-nav>
+          <a href="#home" data-emoji="🏠">Home</a>
+          <a href="#writing" data-emoji="📚">Writing</a>
+          <a href="#lab" data-emoji="🧪">Lab</a>
+          <a href="#listening" data-emoji="🎧">Listening</a>
+        </emoji-nav></div>
+        <p>Sidebar. <code>flex-direction: column</code> on the element, nothing else.</p>
+      </div>
+      <div class="card">
+        <div class="demo"><div class="foot"><emoji-nav>
+          <a href="#gh" data-emoji="🐙">GitHub</a>
+          <a href="#mail" data-emoji="💌">Email</a>
+          <a href="#photos" data-emoji="📸">Photos</a>
+        </emoji-nav></div></div>
+        <p>Dark footer. Set <code>--en-idle</code> and <code>--en-ink</code>.</p>
+      </div>
+      <div class="card right">
+        <div class="demo"><emoji-nav side="right" show-current>
+          <a href="#p1" data-emoji="🚀" aria-current="page">Launches</a>
+          <a href="#p2" data-emoji="🎨">Design notes</a>
+          <a href="#p3" data-emoji="🏎️">Race data</a>
+        </emoji-nav></div>
+        <p>Emoji on the right, current page held lit with <code>show-current</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <h2>Reference</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-emoji</code></td><td></td><td>On each link. The emoji that pops in.</td></tr>
+        <tr><td><code>data-icon</code></td><td></td><td>On each link. Any image URL instead of an emoji.</td></tr>
+        <tr><td><code>emoji-set</code></td><td><code>fluent</code></td><td><code>fluent</code> loads Microsoft's 3D emoji (MIT) so it looks the same on every OS. <code>native</code> uses the system font. Fluent falls back to native if an image fails.</td></tr>
+        <tr><td><code>emoji-base</code></td><td>jsDelivr</td><td>Self-host the Fluent images: a folder of <code>&lt;codepoints&gt;.webp</code>.</td></tr>
+        <tr><td><code>side</code></td><td><code>left</code></td><td><code>left</code> or <code>right</code> of the label.</td></tr>
+        <tr><td><code>show-current</code></td><td>off</td><td>Holds the <code>aria-current</code> item lit until another is hovered.</td></tr>
+        <tr><td><code>--en-idle</code> / <code>--en-ink</code></td><td>grey / ink</td><td>Resting and lit label colors.</td></tr>
+        <tr><td><code>--en-size</code></td><td><code>1.45em</code></td><td>Emoji size relative to the label.</td></tr>
+        <tr><td><code>--en-tilt</code> / <code>--en-from-tilt</code></td><td><code>-6deg</code> / <code>-22deg</code></td><td>Where the emoji settles and where it springs from.</td></tr>
+        <tr><td><code>--en-in</code> / <code>--en-out</code></td><td><code>300ms</code> / <code>180ms</code></td><td>Enter and exit durations.</td></tr>
+        <tr><td><code>--en-gap</code></td><td><code>2.4em</code></td><td>Space between items.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<script src="emoji-nav.js"></script>
+<script>
+(() => {
+  const EMOJI_BASE = null; // demo-only: where the Fluent images live (null = component default CDN)
+  if (EMOJI_BASE) document.querySelectorAll('emoji-nav').forEach((n) => n.setAttribute('emoji-base', EMOJI_BASE));
+
+  const $ = (id) => document.getElementById(id);
+  const play = $('play');
+  const st = { set: 'fluent', side: 'left' };
+  if (EMOJI_BASE) play.setAttribute('emoji-base', EMOJI_BASE);
+
+  const segs = (id) => $(id).addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    $(id).querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    st[id] = b.dataset.v; render();
+  });
+  segs('set'); segs('side');
+
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const defs = { sz: 1.45, tilt: -6, from: -22, dur: 300, gap: 2.4 };
+
+  function render() {
+    const v = (id) => parseFloat($(id).value);
+    $('fs-o').textContent = v('fs') + 'px';
+    $('sz-o').textContent = v('sz').toFixed(2) + 'em';
+    $('tilt-o').textContent = v('tilt') + '°';
+    $('from-o').textContent = v('from') + '°';
+    $('dur-o').textContent = v('dur') + 'ms';
+    $('gap-o').textContent = v('gap').toFixed(1) + 'em';
+
+    play.style.fontSize = v('fs') + 'px';
+    play.style.setProperty('--en-size', v('sz') + 'em');
+    play.style.setProperty('--en-tilt', v('tilt') + 'deg');
+    play.style.setProperty('--en-from-tilt', v('from') + 'deg');
+    play.style.setProperty('--en-in', v('dur') + 'ms');
+    play.style.setProperty('--en-gap', v('gap') + 'em');
+    play.setAttribute('emoji-set', st.set);
+    play.setAttribute('side', st.side);
+    play.toggleAttribute('show-current', $('cur').checked);
+
+    const items = [0, 1, 2].map((i) => ({ e: $('e' + i).value.trim(), l: $('l' + i).value.trim() || 'Link' }));
+    play.innerHTML = items.map((it, i) =>
+      `<a href="#${esc(it.l.toLowerCase().replace(/\s+/g, '-'))}" data-emoji="${esc(it.e)}"${$('cur').checked && i === 1 ? ' aria-current="page"' : ''}>${esc(it.l)}</a>`).join('');
+
+    // code sample
+    const attrs = [];
+    if (st.set !== 'fluent') attrs.push(`emoji-set="${st.set}"`);
+    if (st.side !== 'left') attrs.push(`side="${st.side}"`);
+    if ($('cur').checked) attrs.push('show-current');
+    const css = [];
+    if (v('sz') !== defs.sz) css.push(`--en-size: ${v('sz')}em;`);
+    if (v('tilt') !== defs.tilt) css.push(`--en-tilt: ${v('tilt')}deg;`);
+    if (v('from') !== defs.from) css.push(`--en-from-tilt: ${v('from')}deg;`);
+    if (v('dur') !== defs.dur) css.push(`--en-in: ${v('dur')}ms;`);
+    if (v('gap') !== defs.gap) css.push(`--en-gap: ${v('gap')}em;`);
+    const t = (s) => `<span class="tok-t">${s}</span>`;
+    let out = '';
+    out += `${t('&lt;script')} src="emoji-nav.js"${t('&gt;&lt;/script&gt;')}\n\n`;
+    if (css.length) out += `${t('&lt;style&gt;')}\n  emoji-nav { font-size: ${v('fs')}px; ${css.join(' ')} }\n${t('&lt;/style&gt;')}\n\n`;
+    else if (v('fs') !== 24) out += `${t('&lt;style&gt;')} emoji-nav { font-size: ${v('fs')}px } ${t('&lt;/style&gt;')}\n\n`;
+    out += `${t('&lt;emoji-nav')}${attrs.length ? ' ' + attrs.join(' ') : ''}${t('&gt;')}\n`;
+    items.forEach((it, i) => {
+      out += `  ${t('&lt;a')} href="/${esc(it.l.toLowerCase().replace(/\s+/g, '-'))}" data-emoji="${esc(it.e)}"${$('cur').checked && i === 1 ? ' aria-current="page"' : ''}${t('&gt;')}${esc(it.l)}${t('&lt;/a&gt;')}\n`;
+    });
+    out += t('&lt;/emoji-nav&gt;');
+    $('code').innerHTML = out;
+  }
+
+  document.querySelectorAll('.panel input').forEach((el) => el.addEventListener('input', render));
+  play.addEventListener('click', (e) => { if (e.target.closest('a')) e.preventDefault(); });
+  document.querySelectorAll('.stage a, .variants a').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+
+  $('copy').addEventListener('click', () => {
+    const text = $('code').textContent;
+    const done = () => { $('copy').textContent = 'Copied'; setTimeout(() => { $('copy').textContent = 'Copy'; }, 1400); };
+    try {
+      navigator.clipboard.writeText(text).then(done, () => {
+        const r = document.createRange(); r.selectNodeContents($('code'));
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      });
+    } catch (_) {}
+  });
+
+  render();
+})();
+</script>
+
+</body></html>

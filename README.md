@@ -13,6 +13,7 @@ Reusable web components and UI pieces I build once and drop into future projects
 | [agent-timeline](assets/agent-timeline) | Live activity timeline for AI agents. Running bars, step tooltips, approve/reject popovers, handoff links. | <img src="assets/agent-timeline/demo/screenshot.png" width="320"> |
 | [topic-cards](assets/topic-cards) | Agent chat where every conversation becomes a gradient card. Swipe to fan topics out over a blurred chat, open one, or see Working and Bookmarked in a grid. | <img src="assets/topic-cards/demo/screenshot.png" width="320"> |
 | [redline](assets/redline) | Chat answer that visibly edits itself. CriticMarkup passes, margin notes, moving blocks, table cleanup. | <img src="assets/redline/demo/screenshot.png" width="320"> |
+| [emoji-nav](assets/emoji-nav) | Quiet nav links that light up while a 3D emoji springs in beside them. Hover, focus or current page, any side, any colors. Pure CSS motion. | <img src="assets/emoji-nav/demo/screenshot.png" width="320"> |
 
 Sites I pull ideas from live in [REFERENCES.md](REFERENCES.md).
 
