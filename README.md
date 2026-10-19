@@ -11,6 +11,7 @@ Reusable web components and UI pieces I build once and drop into future projects
 | [storefront-street](assets/storefront-street) | Endless hand-drawn street of storefronts from JSON. Seven building types, tooltips, drag to browse, night mode. | <img src="assets/storefront-street/demo/screenshot.png" width="320"> |
 | [hanging-badges](assets/hanging-badges) | Team ID badges on a rope. Spring-physics sway, holographic shimmer, flip to a profile back with a QR code. | <img src="assets/hanging-badges/demo/screenshot.png" width="320"> |
 | [agent-timeline](assets/agent-timeline) | Live activity timeline for AI agents. Running bars, step tooltips, approve/reject popovers, handoff links. | <img src="assets/agent-timeline/demo/screenshot.png" width="320"> |
+| [topic-cards](assets/topic-cards) | Agent chat where every conversation becomes a gradient card. Swipe to fan topics out over a blurred chat, open one, or see Working and Bookmarked in a grid. | <img src="assets/topic-cards/demo/screenshot.png" width="320"> |
 | [redline](assets/redline) | Chat answer that visibly edits itself. CriticMarkup passes, margin notes, moving blocks, table cleanup. | <img src="assets/redline/demo/screenshot.png" width="320"> |
 
 Sites I pull ideas from live in [REFERENCES.md](REFERENCES.md).
