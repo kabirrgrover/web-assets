@@ -14,6 +14,7 @@ Reusable web components and UI pieces I build once and drop into future projects
 | [topic-cards](assets/topic-cards) | Agent chat where every conversation becomes a gradient card. Swipe to fan topics out over a blurred chat, open one, or see Working and Bookmarked in a grid. | <img src="assets/topic-cards/demo/screenshot.png" width="320"> |
 | [redline](assets/redline) | Chat answer that visibly edits itself. CriticMarkup passes, margin notes, moving blocks, table cleanup. | <img src="assets/redline/demo/screenshot.png" width="320"> |
 | [emoji-nav](assets/emoji-nav) | Quiet nav links that light up while a 3D emoji springs in beside them. Hover, focus or current page, any side, any colors. Pure CSS motion. | <img src="assets/emoji-nav/demo/screenshot.png" width="320"> |
+| [catalog-tree](assets/catalog-tree) | Portfolio catalog as a branching tree. Category pills fan out into a scattered thumbnail field on spring-animated curves; hover to lift, click for a blurred-backdrop lightbox. | <img src="assets/catalog-tree/demo/screenshot.png" width="320"> |
 
 Sites I pull ideas from live in [REFERENCES.md](REFERENCES.md).
 
