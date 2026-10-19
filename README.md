@@ -15,6 +15,7 @@ Reusable web components and UI pieces I build once and drop into future projects
 | [redline](assets/redline) | Chat answer that visibly edits itself. CriticMarkup passes, margin notes, moving blocks, table cleanup. | <img src="assets/redline/demo/screenshot.png" width="320"> |
 | [emoji-nav](assets/emoji-nav) | Quiet nav links that light up while a 3D emoji springs in beside them. Hover, focus or current page, any side, any colors. Pure CSS motion. | <img src="assets/emoji-nav/demo/screenshot.png" width="320"> |
 | [catalog-tree](assets/catalog-tree) | Portfolio catalog as a branching tree. Category pills fan out into a scattered thumbnail field on spring-animated curves; hover to lift, click for a blurred-backdrop lightbox. | <img src="assets/catalog-tree/demo/screenshot.png" width="320"> |
+| [rope-scroll](assets/rope-scroll) | Horizontal scroll scene where a rope draws itself as you scroll, a sloth hangs off it, and objects sharpen out of a blur. Authoring grid with click-to-copy coordinates. | <img src="assets/rope-scroll/demo/screenshot.png" width="320"> |
 
 Sites I pull ideas from live in [REFERENCES.md](REFERENCES.md).
 

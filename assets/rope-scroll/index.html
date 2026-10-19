@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RopeScroll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=Newsreader:opsz,wght@6..72,500&display=swap">
+<style>
+  /* Layout: fixed hairline header over a full-bleed horizontal scene, short footer after it. */
+  :root {
+    --bg: #f5f5f3;
+    --ink: #151515;
+    --muted: #7b7a77;
+    --rope: #111111;
+    --shadow: rgba(20, 18, 16, 0.22);
+    --bubble: #1d8cff;
+    --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+    --sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121212; --ink: #f2f1ee; --muted: #9a9894; --rope: #ecebe7; --shadow: rgba(0, 0, 0, 0.6); --bubble: #2f95ff;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121212; --ink: #f2f1ee; --muted: #9a9894; --rope: #ecebe7; --shadow: rgba(0, 0, 0, 0.6); --bubble: #2f95ff;
+    color-scheme: dark;
+  }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { margin: 0; font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+
+  #scene {
+    --rs-ink: var(--ink);
+    --rs-muted: var(--muted);
+    --rs-rope: var(--rope);
+    --rs-shadow: var(--shadow);
+    --rs-bubble: var(--bubble);
+    --rs-display: var(--display);
+    --rs-sans: var(--sans);
+  }
+
+  .site-head {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: calc(18px + env(safe-area-inset-top, 0px));
+    padding-bottom: 18px;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    pointer-events: none;
+  }
+  .site-head > * { pointer-events: auto; }
+  .wordmark { font: 500 24px/1 var(--display); color: var(--ink); text-decoration: none; }
+  .site-nav { display: flex; gap: 22px; flex-wrap: wrap; justify-content: flex-end; }
+  .site-nav a { font: 400 14px/1 var(--sans); color: var(--ink); text-decoration: none; }
+  .site-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .site-nav a:focus-visible, .wordmark:focus-visible { outline: 2px solid var(--bubble); outline-offset: 4px; border-radius: 2px; }
+
+  .hint {
+    position: fixed;
+    left: max(24px, env(safe-area-inset-left, 0px));
+    bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+    font: 400 13px/1 var(--sans);
+    color: var(--muted);
+    transition: opacity .4s;
+  }
+  .hint.is-gone { opacity: 0; }
+
+  .after {
+    padding-block: 96px;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    text-align: center;
+    color: var(--muted);
+    font: 400 15px/1.5 var(--sans);
+  }
+  .after strong { display: block; margin-bottom: 8px; font: 500 30px/1.1 var(--display); color: var(--ink); }
+  .after kbd { font: 500 12px ui-monospace, Menlo, monospace; padding: 2px 6px; border: 1px solid var(--muted); border-radius: 4px; }
+
+  @media (max-width: 560px) {
+    .site-nav { gap: 14px; }
+    .site-nav a:nth-child(n+3) { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="site-head">
+  <a class="wordmark" href="#top">Your Name</a>
+  <nav class="site-nav" aria-label="Primary">
+    <a href="#top">work</a>
+    <a href="#top">notes</a>
+    <a href="#top">github</a>
+    <a href="#top">say hi</a>
+  </nav>
+</header>
+
+<main id="top">
+  <div id="scene"></div>
+  <section class="after">
+    <strong>That's the scene.</strong>
+    Add <kbd>#debug</kbd> to the URL or press <kbd>Shift</kbd> + <kbd>D</kbd> to see the grid and anchor points.
+  </section>
+</main>
+
+<p class="hint" id="hint">scroll &darr;</p>
+
+<script src="rope-scroll.js"></script>
+<script>
+  var scene = RopeScroll.create(document.getElementById('scene'), {
+    width: 5000,
+    label: 'Things I have built and cared about',
+    path: [
+      [-60, 760], [180, 660], [380, 560],
+      [560, 690], [520, 800], [420, 760], [470, 650],
+      [700, 450], [920, 300], [1060, 262], [1170, 320],
+      [1270, 520], [1420, 650], [1640, 690],
+      [1790, 660], [1850, 540], [1990, 440], [2200, 380], [2380, 330],
+      [2620, 450], [2830, 660], [2990, 720],
+      [3110, 610], [3230, 470], [3420, 380], [3640, 340],
+      [3900, 420], [4100, 560], [4260, 540]
+    ],
+    rider: {
+      emoji: '\u{1F9A5}',
+      size: 130,
+      lag: 260,
+      bubble: 'apparently i like hanging around'
+    },
+    items: [
+      { x: 110, y: 170, layout: 'stack', heading: 'h1',
+        media: { emoji: '⌨️', size: 150, alt: 'keyboard' },
+        eyebrow: 'i build a lot of things.', title: 'a little bit of everything',
+        titleSize: 58, copyWidth: 460, body: 'which is a polite way to say i open too many tabs.' },
+      { x: 30, y: 700, media: { emoji: '\u{1F408}‍⬛', size: 170, alt: 'cat' } },
+      { x: 640, y: 650, media: { emoji: '\u{1F3F8}', size: 150, alt: 'badminton racket', rotate: -12 } },
+      { x: 1240, y: 140, layout: 'text', title: 'but a few ideas stuck.', titleSize: 84, copyWidth: 520 },
+      { x: 1690, y: 570, gap: 34,
+        media: { emoji: '\u{1F30D}', size: 200, alt: 'globe' },
+        title: 'the internet came first.', body: 'fell for systems that talk to each other.' },
+      { x: 2380, y: 190, gap: 34,
+        media: { emoji: '\u{1F3A7}', size: 210, alt: 'headphones' },
+        title: 'then, sound.', body: 'built tools for people who make music at 2am.' },
+      { x: 2990, y: 610, gap: 34,
+        media: { emoji: '\u{1F9E0}', size: 200, alt: 'brain' },
+        title: 'and now, ai.', body: 'half engineer, half "what if".' },
+      { x: 3640, y: 230, gap: 34,
+        media: { emoji: '\u{1F3CE}️', size: 200, alt: 'race car' },
+        title: 'fast things, too.', body: 'telemetry is gossip with timestamps.' },
+      { x: 4320, y: 380, layout: 'text', title: "let's build something.", titleSize: 72, copyWidth: 460,
+        body: 'currently taking on a few projects.', cta: { label: 'say hi →', href: '#top' } }
+    ]
+  });
+
+  var hint = document.getElementById('hint');
+  window.addEventListener('scroll', function () {
+    hint.classList.toggle('is-gone', window.scrollY > 40);
+  }, { passive: true });
+</script>
+</body>
+</html>
