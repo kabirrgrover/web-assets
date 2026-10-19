@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FIDS World Clock</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one full-screen stage, floating pill controls pinned to the four corners and bottom center. */
+  :root {
+    --bg: #161616;
+    --fg: #f2f2ee;
+    --muted: #8d8d88;
+    --pill: #262625;
+    --pill-hi: #3a3a38;
+    --line: #ffffff14;
+    --scrim: #161616cc;
+    --font-ui: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #e9e9e6; --fg: #151515; --muted: #6e6e69; --pill: #dcdcd8; --pill-hi: #fbfbf9;
+      --line: #0000001a; --scrim: #e9e9e6d9; color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #e9e9e6; --fg: #151515; --muted: #6e6e69; --pill: #dcdcd8; --pill-hi: #fbfbf9;
+    --line: #0000001a; --scrim: #e9e9e6d9; color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 500 14px/1.3 var(--font-ui);
+    overflow: hidden;
+    transition: background-color .3s ease;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+  .app {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding-block: 20px;
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+
+  .bar { display: flex; align-items: center; gap: 10px; position: relative; z-index: 3; }
+  .bar .spacer { flex: 1; }
+  .bottom { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; }
+  .bottom > :first-child { justify-self: start; }
+  .bottom > :last-child { justify-self: end; }
+
+  .pill {
+    height: 40px; padding: 0 16px; border: 0; border-radius: 999px;
+    background: var(--pill); display: inline-flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .pill.icon { width: 40px; padding: 0; justify-content: center; }
+  .pill:hover { background: var(--pill-hi); }
+  .pill svg { width: 18px; height: 18px; flex: none; }
+
+  .seg { display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: var(--pill); }
+  .seg button { height: 32px; padding: 0 13px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--pill-hi); color: var(--fg); }
+
+  .stage { display: grid; place-items: center; min-height: 0; padding-block: 12px; }
+  fids-board { width: min(100%, 1100px); max-height: 100%; }
+
+  /* Settings panel */
+  .panel {
+    position: absolute; z-index: 4; top: 72px; left: max(20px, env(safe-area-inset-left, 0px));
+    width: min(300px, calc(100% - 40px));
+    display: grid; gap: 18px; padding: 16px;
+    background: var(--scrim); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line); border-radius: 22px;
+  }
+  .panel h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .swatches { display: flex; gap: 8px; }
+  .swatch {
+    width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0;
+    background: var(--c); box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .vol { flex: 1; min-width: 120px; accent-color: var(--fg); }
+  .count { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; }
+  .hint { margin: 0; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
+
+  /* Location pill + search */
+  .loc { position: relative; justify-self: center; }
+  .search {
+    height: 40px; width: min(380px, 70vw); padding: 0 16px 0 40px; border: 0; border-radius: 999px;
+    background: var(--pill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d88' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px center / 16px;
+  }
+  .search::placeholder { color: var(--muted); }
+  .results {
+    position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+    width: max-content; max-width: min(380px, 86vw);
+    list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; justify-items: start;
+  }
+  .results li {
+    padding: 9px 14px; border-radius: 999px; background: var(--scrim);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line);
+    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+  .results li span { color: var(--muted); font-weight: 400; }
+  .results li[aria-selected="true"], .results li:hover { background: var(--pill-hi); }
+
+  @media (max-width: 560px) {
+    .app { padding-block: 14px; }
+    .bottom { grid-template-columns: auto 1fr; gap: 10px; }
+    .bottom .date { display: none; }
+    .loc { justify-self: end; }
+    .search { width: min(260px, 60vw); }
+  }
+  @media (prefers-reduced-motion: reduce) { body { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <button class="pill icon" id="settingsBtn" aria-label="Display settings" aria-expanded="false" aria-controls="panel">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7h2A4.4 4.4 0 0 0 21 11c0-4.4-4-8-9-8Zm-5.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
+    </button>
+    <span class="spacer"></span>
+    <button class="pill icon" id="fsBtn" aria-label="Full screen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>
+    </button>
+  </header>
+
+  <aside class="panel" id="panel" hidden>
+    <section>
+      <h2>Display</h2>
+      <div class="seg" id="shapeSeg">
+        <button data-v="round">Dots</button><button data-v="square">Pixels</button>
+      </div>
+    </section>
+    <section>
+      <h2>Color</h2>
+      <div class="swatches" id="swatches"></div>
+    </section>
+    <section>
+      <h2>Theme</h2>
+      <div class="seg" id="themeSeg">
+        <button data-v="auto">Auto</button><button data-v="dark">Dark</button><button data-v="light">Light</button>
+      </div>
+    </section>
+    <section>
+      <h2>Sound</h2>
+      <div class="row">
+        <div class="seg" id="soundSeg">
+          <button data-v="off">Off</button><button data-v="soft">Soft</button><button data-v="clack">Clack</button>
+        </div>
+        <input class="vol" id="vol" type="range" min="0" max="100" step="1" aria-label="Volume">
+      </div>
+    </section>
+    <section>
+      <h2>Rows</h2>
+      <div class="row">
+        <div class="seg">
+          <button id="rowMinus" aria-label="Remove last row">&minus;</button>
+          <span class="count" id="rowCount" style="align-self:center"></span>
+          <button id="rowPlus" aria-label="Add a row">+</button>
+        </div>
+      </div>
+    </section>
+    <p class="hint">Tap a row on the board to select it, then search below to swap its city.</p>
+  </aside>
+
+  <main class="stage">
+    <fids-board id="board" interactive></fids-board>
+  </main>
+
+  <footer class="bar bottom">
+    <div class="seg" id="fmtSeg">
+      <button data-v="24">24h</button><button data-v="12">12h</button>
+    </div>
+    <div class="loc">
+      <ul class="results" id="results" role="listbox" hidden></ul>
+      <button class="pill" id="locPill" aria-label="Change city for selected row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5"/></svg>
+        <span id="locLabel"></span>
+      </button>
+      <input class="search" id="search" type="text" placeholder="Type a city name" autocomplete="off" spellcheck="false" hidden
+             role="combobox" aria-controls="results" aria-expanded="false">
+    </div>
+    <div class="pill date" id="datePill"></div>
+  </footer>
+</div>
+
+<script type="module">
+  import { createFlapSound } from './fids-board.js';
+  import { WorldClock, CITIES, findCity, searchCities, offsetLabel, dateLabel } from './world-clock.js';
+
+  const $ = (id) => document.getElementById(id);
+  const board = $('board');
+
+  // ---- persisted settings (per browser, optional) -------------------------
+  const DEFAULTS = {
+    cities: ['Los Angeles', 'New York', 'London', 'Dubai', 'Tokyo'],
+    shape: 'round', color: 0, theme: 'auto', sound: 'clack', volume: 60, fmt: '24', selected: 1,
+  };
+  let state = { ...DEFAULTS };
+  try { Object.assign(state, JSON.parse(localStorage.getItem('fids-clock') || '{}')); } catch {}
+  const save = () => { try { localStorage.setItem('fids-clock', JSON.stringify(state)); } catch {} };
+
+  // Lit-dot colors, one value per theme so each stays legible.
+  const PALETTE = [
+    { name: 'Paper',  dark: '#f2f2ee', light: '#151515' },
+    { name: 'Amber',  dark: '#ffb340', light: '#b86a00' },
+    { name: 'Lime',   dark: '#c9f28a', light: '#3f7a12' },
+    { name: 'Butter', dark: '#f6ea7a', light: '#8a7a00' },
+    { name: 'Sky',    dark: '#a9cdf5', light: '#2556a8' },
+  ];
+
+  // ---- clock ---------------------------------------------------------------
+  const clock = new WorldClock(board, {
+    cities: state.cities.map((n) => findCity(n)).filter(Boolean),
+    hour12: state.fmt === '12',
+  });
+  if (!clock.cities.length) clock.cities = DEFAULTS.cities.map(findCity);
+  let selected = Math.min(state.selected, clock.cities.length - 1);
+
+  const sound = createFlapSound({ volume: state.volume / 100, style: state.sound === 'soft' ? 'soft' : 'clack', enabled: state.sound !== 'off' });
+  board.addEventListener('flip', (e) => sound.play(e.detail.count));
+  window.addEventListener('pointerdown', () => sound.unlock(), { once: false });
+  window.addEventListener('keydown', () => sound.unlock());
+
+  // ---- theme + color --------------------------------------------------------
+  const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => state.theme === 'dark' || (state.theme === 'auto' && darkMQ.matches);
+  function applyTheme() {
+    const root = document.documentElement;
+    if (state.theme === 'auto') delete root.dataset.theme; else root.dataset.theme = state.theme;
+    const mode = isDark() ? 'dark' : 'light';
+    board.setAttribute('color', PALETTE[state.color]?.[mode] || PALETTE[0][mode]);
+    board.setAttribute('dim', mode === 'dark' ? '0.13' : '0.11');
+    renderSwatches();
+  }
+  darkMQ.addEventListener?.('change', applyTheme);
+
+  function renderSwatches() {
+    const mode = isDark() ? 'dark' : 'light';
+    $('swatches').innerHTML = PALETTE.map((p, i) =>
+      `<button class="swatch" style="--c:${p[mode]}" data-i="${i}" aria-label="${p.name}" aria-pressed="${i === state.color}"></button>`
+    ).join('');
+  }
+  $('swatches').addEventListener('click', (e) => {
+    const b = e.target.closest('.swatch'); if (!b) return;
+    state.color = +b.dataset.i; save(); applyTheme();
+  });
+
+  // ---- segmented controls ---------------------------------------------------
+  function bindSeg(id, key, onChange) {
+    const el = $(id);
+    const paint = () => el.querySelectorAll('button[data-v]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === state[key])));
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-v]'); if (!b || b.dataset.v === state[key]) return;
+      state[key] = b.dataset.v; save(); paint(); onChange(state[key]);
+    });
+    paint();
+  }
+  bindSeg('shapeSeg', 'shape', (v) => board.setAttribute('shape', v));
+  bindSeg('themeSeg', 'theme', applyTheme);
+  bindSeg('soundSeg', 'sound', (v) => { sound.enabled = v !== 'off'; sound.style = v === 'soft' ? 'soft' : 'clack'; sound.unlock(); board.scramble([selected]); });
+  bindSeg('fmtSeg', 'fmt', (v) => clock.setHour12(v === '12'));
+
+  $('vol').value = state.volume;
+  $('vol').addEventListener('input', (e) => { state.volume = +e.target.value; sound.volume = state.volume / 100; save(); });
+  $('vol').addEventListener('change', () => board.scramble([selected]));
+
+  // ---- rows -------------------------------------------------------------------
+  const SPARE = ['Paris', 'Sydney', 'Singapore', 'Sao Paulo', 'Chicago', 'Mumbai', 'Berlin'];
+  function persistCities() { state.cities = clock.cities.map((c) => c.name); save(); $('rowCount').textContent = clock.cities.length; }
+  $('rowPlus').addEventListener('click', () => {
+    if (clock.cities.length >= 10) return;
+    const used = new Set(clock.cities.map((c) => c.name));
+    const next = SPARE.map(findCity).find((c) => !used.has(c.name)) || CITIES[0];
+    clock.addCity(next); board.scramble([clock.cities.length - 1]); persistCities();
+  });
+  $('rowMinus').addEventListener('click', () => {
+    if (clock.cities.length <= 1) return;
+    clock.removeCity(clock.cities.length - 1);
+    selected = Math.min(selected, clock.cities.length - 1); updateLabels(); persistCities();
+  });
+
+  // ---- selection + labels --------------------------------------------------------
+  function updateLabels() {
+    const c = clock.cities[selected];
+    $('locLabel').textContent = `${c.name} · ${offsetLabel(c.tz)}`;
+    $('datePill').textContent = dateLabel(c.tz);
+  }
+  board.addEventListener('rowclick', (e) => {
+    selected = e.detail.row; state.selected = selected; save();
+    board.scramble([selected]); updateLabels();
+  });
+  setInterval(updateLabels, 30_000);
+
+  // ---- search -------------------------------------------------------------------
+  const pill = $('locPill'), input = $('search'), list = $('results');
+  let hits = [], active = 0;
+  function openSearch() { pill.hidden = true; input.hidden = false; input.value = ''; input.focus(); renderHits(); }
+  function closeSearch() { input.hidden = true; list.hidden = true; pill.hidden = false; input.setAttribute('aria-expanded', 'false'); }
+  function renderHits() {
+    hits = searchCities(input.value, 8); active = 0;
+    list.hidden = !hits.length; input.setAttribute('aria-expanded', String(!!hits.length));
+    list.innerHTML = hits.map((c, i) =>
+      `<li role="option" data-i="${i}" aria-selected="${i === active}">${c.name} <span>· ${c.country} · ${offsetLabel(c.tz)}</span></li>`
+    ).join('');
+  }
+  function paintActive() { list.querySelectorAll('li').forEach((li, i) => li.setAttribute('aria-selected', String(i === active))); }
+  function choose(c) {
+    if (!c) return;
+    clock.setCity(selected, c); persistCities(); updateLabels(); closeSearch();
+  }
+  pill.addEventListener('click', openSearch);
+  input.addEventListener('input', renderHits);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { active = Math.min(active + 1, hits.length - 1); paintActive(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { active = Math.max(active - 1, 0); paintActive(); e.preventDefault(); }
+    else if (e.key === 'Enter') { choose(hits[active]); }
+    else if (e.key === 'Escape') { closeSearch(); pill.focus(); }
+  });
+  input.addEventListener('blur', () => setTimeout(closeSearch, 120));
+  list.addEventListener('mousedown', (e) => e.preventDefault());
+  list.addEventListener('click', (e) => { const li = e.target.closest('li'); if (li) choose(hits[+li.dataset.i]); });
+
+  // ---- panel + fullscreen -------------------------------------------------------
+  const panel = $('panel'), sBtn = $('settingsBtn');
+  sBtn.addEventListener('click', () => { panel.hidden = !panel.hidden; sBtn.setAttribute('aria-expanded', String(!panel.hidden)); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) { panel.hidden = true; sBtn.setAttribute('aria-expanded', 'false'); } });
+  $('fsBtn').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    else document.documentElement.requestFullscreen?.().catch(() => {});
+  });
+
+  // ---- boot -----------------------------------------------------------------------
+  board.setAttribute('shape', state.shape);
+  applyTheme();
+  updateLabels();
+  persistCities();
+  clock.start();
+</script>
+</body>
+</html>
