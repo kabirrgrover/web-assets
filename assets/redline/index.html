@@ -1,0 +1,282 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Redline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap">
+</head><body>
+<style>
+/* Layout: one chat surface centered, controls bar above it, a pass rail and integration notes below. */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --fg:#1b1d21; --muted:#6a6f78; --line:#e2e4e8; --soft:#f6f7f9;
+  --ink:#d4342a; --ink-soft:#fbe9e7; --cite-bg:#e8edfb; --cite-fg:#3554c4; --bubble:#eef0f3;
+  --font:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --hand:"Caveat","Segoe Print","Bradley Hand",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111214; --surface:#18191c; --fg:#e8e9ec; --muted:#9a9ea7; --line:#2b2d32; --soft:#1f2024;
+  --ink:#ff6a5c; --ink-soft:#3a1f1c; --cite-bg:#232c4a; --cite-fg:#a9bbff; --bubble:#25272b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111214; --surface:#18191c; --fg:#e8e9ec; --muted:#9a9ea7; --line:#2b2d32; --soft:#1f2024;
+  --ink:#ff6a5c; --ink-soft:#3a1f1c; --cite-bg:#232c4a; --cite-fg:#a9bbff; --bubble:#25272b; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.page{max-width:1080px;margin:0 auto;padding-block:36px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.brand h1{margin:0;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+.brand h1 span{font-family:var(--hand);color:var(--ink);font-weight:600;font-size:34px;margin-left:8px;letter-spacing:0}
+.brand p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-size:13.5px;font-weight:500;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button.primary{background:var(--fg);color:var(--surface);border-color:var(--fg)}
+button:disabled{opacity:.45;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;border-radius:0;padding:7px 10px;font-family:var(--mono);font-size:12px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--soft);color:var(--ink)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding-block:32px 36px;padding-inline:clamp(16px,4vw,40px);min-width:0}
+#player{--rl-ink:var(--ink);--rl-fg:var(--fg);--rl-muted:var(--muted);--rl-border:var(--line);--rl-head:var(--soft);--rl-bubble:var(--bubble);--rl-cite-bg:var(--cite-bg);--rl-cite-fg:var(--cite-fg);--rl-surface:var(--surface);--rl-mono:var(--mono);--rl-hand:var(--hand);--rl-col:640px;--rl-margin:210px}
+
+.rail{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.rail li{font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;display:inline-flex;align-items:center;gap:6px;background:var(--surface);transition:color .2s,border-color .2s,background-color .2s}
+.rail li b{font-family:var(--mono);font-weight:500;font-size:10.5px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--soft)}
+.rail li.done{color:var(--fg)}
+.rail li.done b{background:var(--fg);color:var(--surface)}
+.rail li.now{color:var(--ink);border-color:var(--ink);background:var(--ink-soft)}
+.rail li.now b{background:var(--ink);color:#fff}
+
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px;margin-top:8px}
+.how section{min-width:0}
+.how h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:0 0 8px}
+.how p{margin:0 0 10px;max-width:62ch}
+pre{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.6}
+code{font-family:var(--mono);font-size:.88em}
+pre .d{color:var(--ink)} pre .i{color:var(--cite-fg)} pre .c{color:var(--muted)}
+.small{font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.rail li{transition:none}}
+</style>
+
+<div class="page">
+  <header>
+    <div class="brand">
+      <h1>Redline <span>edits, live</span></h1>
+      <p>A chat response that visibly revises itself: cut filler, lead with the answer, then clean up the table one rule at a time.</p>
+    </div>
+    <div class="controls" role="group" aria-label="Playback">
+      <button id="play" class="primary" type="button">Replay</button>
+      <button id="step" type="button">Next pass</button>
+      <button id="skip" type="button">Show final</button>
+      <div class="seg" role="group" aria-label="Speed">
+        <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+        <button type="button" data-speed="1" aria-pressed="true">1×</button>
+        <button type="button" data-speed="2" aria-pressed="false">2×</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stage"><div id="player"></div></div>
+
+  <ol class="rail" id="rail" aria-label="Revision passes"></ol>
+
+  <div class="how">
+    <section>
+      <h2>How it plugs in</h2>
+      <p>Stream the draft as usual. When it finishes, a fast editor model returns revision passes. Redline animates them, then leaves the clean answer in place. Users can skip at any point.</p>
+      <p>Edits are plain <a href="https://github.com/CriticMarkup/CriticMarkup-toolkit" target="_blank" rel="noopener">CriticMarkup</a>, which models write reliably. Structural changes (moves, alignment, new rows) are small JSON ops.</p>
+      <p class="small">Figures in this demo are sample data from the reference video, not verified.</p>
+    </section>
+    <section>
+      <h2>One pass</h2>
+<pre><span class="c">// what the editor model returns</span>
+{
+  "note": "cut the filler",
+  "anchor": "b1",
+  "ops": [{
+    "edit": "b1",
+    "markup": "Visa<span class="i">{++'s++}</span><span class="d">{-- continues to--}</span> net
+      revenue grew <span class="d">{--approximately --}</span>11.3%"
+  }, {
+    "move": "b4", "before": "b1"
+  }, {
+    "rootClass": "rl-num-right"
+  }]
+}</pre>
+    </section>
+  </div>
+</div>
+
+<script src="./redline.js"></script>
+<script>
+/* Demo script: recreates the "Visa vs peers" revision sequence. Sample figures, not verified. */
+window.REDLINE_DEMO = {
+  question: 'How does Visa compare to its payments peers on growth and margins?',
+  blocks: [
+    { id: 'b0', text: "Great question! When comparing Visa to its payments peers, it's important to consider several key factors, including revenue growth, profitability, and the broader competitive landscape. Let's dive in." },
+    { id: 'b1', text: "Visa continues to demonstrate robust performance, as its net revenue grew approximately 11.3% to $40.0 billion in fiscal 2025. [1] It's worth noting that GAAP operating expenses rose a substantial 30%, driven in large part by higher litigation provisions and personnel expenses. [1]" },
+    { id: 'b2', type: 'h', text: 'Key takeaways:' },
+    { id: 'b3', type: 'ul', items: [
+      'Revenue Growth: Mastercard notably outpaced Visa, growing 16.4% while expanding its margin by 231 bps to 57.6%. [2]',
+      'Peer Comparison: American Express delivered solid growth of 9.5%; however, operating margin is not a meaningful metric for its bank-like model. [3]',
+      'Other Players: PayPal lagged behind with more modest growth of 4.3%, though its margin did improve 154 bps to 18.3%. [4]'
+    ] },
+    { id: 'b4', text: 'Overall, Visa still has the highest operating margin in the group at 60.0%, but it fell 569 bps in FY25, largely on a $2.5B litigation provision, while Mastercard grew faster and widened its margin.' },
+    { id: 't', type: 'table',
+      columns: [
+        { text: 'Company' },
+        { text: 'Revenue', num: true },
+        { text: 'Revenue Growth', num: true },
+        { text: 'Operating Margin', num: true },
+        { text: 'Margin Change', num: true }
+      ],
+      rows: [
+        ['Visa Inc.', '$40 billion [1]', '11.3%', '60%', '-5.69 pp'],
+        ['Mastercard Inc.', '$32.79 billion [2]', '16.42%', '57.63%', '+2.31 pp'],
+        ['American Express', '$72.2 billion [3]', '9.5%', 'N/A', 'N/A'],
+        ['PayPal Holdings', '$33.17 billion [4]', '4.32%', '18.28%', '+1.54 pp']
+      ]
+    }
+  ],
+  passes: [
+    { note: 'cut the filler', anchor: 'b0', hold: 900, ops: [
+      { edit: 'b0', markup: "{--Great question! When comparing Visa to its payments peers, it's important to consider several key factors, including revenue growth, profitability, and the broader competitive landscape. Let's dive in.--}" },
+      { edit: 'b1', markup: "Visa{++'s++}{-- continues to demonstrate robust performance, as its--} net revenue grew {--approximately --}11.3% to $40.0{-- billion in fiscal 2025--}{++B in FY25++}. [1] {--It's worth noting that --}GAAP operating expenses rose {--a substantial --}30%{--, driven in large part by higher--}{++, mainly from++} litigation provisions and personnel {~~expenses~>costs~~}. [1]" },
+      { edit: 'b2', markup: '{--Key takeaways:--}' },
+      { edit: 'b3.0', markup: '{--Revenue Growth: --}Mastercard {~~notably outpaced Visa, growing~>grew~~} 16.4% {~~while expanding~>and widened~~} its margin {--by --}231 bps to 57.6%. [2]' },
+      { edit: 'b3.1', markup: "{--Peer Comparison: --}American Express {~~delivered solid growth of~>grew~~} 9.5%; {--however, --}operating margin {~~is not a meaningful metric~>isn't meaningful~~} for its {~~bank-like model~>bank-style P&amp;L~~}. [3]" },
+      { edit: 'b3.2', markup: '{--Other Players: --}PayPal {~~lagged behind with more modest growth of~>grew~~} 4.3%, {~~though its margin did improve~>with its margin up~~} 154 bps to 18.3%. [4]' },
+      { edit: 'b4', markup: '{--Overall, --}Visa still has the highest operating margin in the group at 60.0%, but it fell 569 bps in FY25, largely on a $2.5B litigation provision, while Mastercard grew faster and widened its margin.{++ [1][2]++}' }
+    ] },
+    { note: 'lead with the answer', anchor: 'b4', ops: [
+      { move: 'b4', before: 'b1' }
+    ] },
+    { note: 'improve scannability', anchor: 'b4', ops: [
+      { addClass: 'b4', className: 'rl-lead' },
+      { rootClass: 'rl-cites-pill' },
+      { rootClass: 'rl-scan' }
+    ] },
+    { note: 'units up top', anchor: 't', ops: [
+      { edit: 't.h1', markup: 'Revenue{++ ($B)<small>FY25A</small>++}' },
+      { edit: 't.h2', markup: '{--Revenue --}Growth{++<small>FY25A</small>++}' },
+      { edit: 't.h3', markup: '{~~Operating Margin~>Op. margin~~}{++<small>FY25A</small>++}' },
+      { edit: 't.r0c1', markup: '{--$--}40{-- billion--} [1]' },
+      { edit: 't.r1c1', markup: '{--$--}32.79{-- billion--} [2]' },
+      { edit: 't.r2c1', markup: '{--$--}72.2{-- billion--} [3]' },
+      { edit: 't.r3c1', markup: '{--$--}33.17{-- billion--} [4]' }
+    ] },
+    { note: 'cite left', anchor: 't', ops: [
+      { edit: 't.r0c1', markup: '{++[1] ++}40{-- [1]--}' },
+      { edit: 't.r1c1', markup: '{++[2] ++}32.79{-- [2]--}' },
+      { edit: 't.r2c1', markup: '{++[3] ++}72.2{-- [3]--}' },
+      { edit: 't.r3c1', markup: '{++[4] ++}33.17{-- [4]--}' }
+    ] },
+    { note: 'right align numbers', anchor: 't', hold: 300, ops: [
+      { rootClass: 'rl-num-right' }
+    ] },
+    { note: 'standardize decimals', anchor: 't', ops: [
+      { edit: 't.r0c1', markup: '[1] 40{++.0++}' },
+      { edit: 't.r1c1', markup: '[2] 32.{~~79~>8~~}' },
+      { edit: 't.r3c1', markup: '[4] 33.{~~17~>2~~}' },
+      { edit: 't.r1c2', markup: '16.4{--2--}%' },
+      { edit: 't.r3c2', markup: '4.3{--2--}%' },
+      { edit: 't.r0c3', markup: '60{++.0++}%' },
+      { edit: 't.r1c3', markup: '57.6{--3--}%' },
+      { edit: 't.r3c3', markup: '18.{~~28~>3~~}%' }
+    ] },
+    { note: 'same width for every character', anchor: 't', hold: 300, ops: [
+      { rootClass: 'rl-mono' }
+    ] },
+    { note: 'n.m. and bps', anchor: 't', ops: [
+      { edit: 't.h4', markup: '{~~Margin Change~>&Delta; margin (bps)<small>y/y</small>~~}' },
+      { edit: 't.r0c4', markup: '{~~-5.69 pp~>(569)~~}' },
+      { edit: 't.r1c4', markup: '{~~+2.31 pp~>231~~}' },
+      { edit: 't.r2c4', markup: '{~~N/A~><span class="rl-nm">n.m.</span>~~}' },
+      { edit: 't.r3c4', markup: '{~~+1.54 pp~>154~~}' },
+      { edit: 't.r2c3', markup: '{~~N/A~><span class="rl-nm">n.m.</span>~~}' }
+    ] },
+    { note: 'logo chips', anchor: 't', ops: [
+      { edit: 't.r0c0', markup: 'Visa{-- Inc.--}' },
+      { edit: 't.r1c0', markup: 'Mastercard{-- Inc.--}' },
+      { edit: 't.r3c0', markup: 'PayPal{-- Holdings--}' },
+      { html: 't.r0c0', content: '<span class="rl-chip"><i style="--c:#1a2a8c">V</i>Visa <b>V</b></span>' },
+      { html: 't.r1c0', content: '<span class="rl-chip"><i style="--c:#d9541e">M</i>Mastercard <b>MA</b></span>' },
+      { html: 't.r2c0', content: '<span class="rl-chip"><i style="--c:#2671b9">A</i>American Express <b>AXP</b></span>' },
+      { html: 't.r3c0', content: '<span class="rl-chip"><i style="--c:#13306b">P</i>PayPal <b>PYPL</b></span>' }
+    ] },
+    { note: 'mean + median', anchor: 't', after: 900, ops: [
+      { addRows: 't', className: 'rl-agg', rows: [
+        ['Mean', '44.5', '10.4%', '45.3%', '(61)'],
+        ['Median', '36.6', '10.4%', '57.6%', '154']
+      ] },
+      { addBlock: { id: 'fn', type: 'note', text: 'Visa fiscal year ends Sep 30. GAAP operating margin. n.m. = not meaningful.' }, after: 't' }
+    ] }
+  ]
+};
+
+</script>
+<script>
+(function(){
+  var data = window.REDLINE_DEMO;
+  var rail = document.getElementById('rail');
+  data.passes.forEach(function(p,i){
+    var li = document.createElement('li');
+    li.innerHTML = '<b>'+(i+1)+'</b>'+p.note;
+    rail.appendChild(li);
+  });
+  var items = rail.children;
+  var playBtn = document.getElementById('play'), stepBtn = document.getElementById('step'), skipBtn = document.getElementById('skip');
+
+  function paint(st, current){
+    for (var i=0;i<items.length;i++){
+      items[i].classList.toggle('done', i < st.index);
+      items[i].classList.toggle('now', st.playing && i === (current==null? st.index : current));
+    }
+    var done = st.index >= data.passes.length;
+    playBtn.textContent = st.playing ? 'Pause' : (st.index === 0 ? 'Play' : (done ? 'Replay' : 'Resume'));
+    stepBtn.disabled = st.playing || done;
+    skipBtn.disabled = done;
+  }
+  var current = null;
+  var player = new Redline('#player', {
+    question: data.question,
+    blocks: data.blocks,
+    passes: data.passes,
+    onPass: function(i){ current = i; paint(player.state(), i); },
+    onState: function(st){ paint(st, current); }
+  });
+  paint(player.state());
+
+  var paused = false;
+  playBtn.addEventListener('click', function(){
+    var st = player.state();
+    if (st.playing){
+      /* pause = finish current pass, then stop */
+      var idx = player.index;
+      player.passes = data.passes.slice(0, idx + 1);
+      paused = true;
+      return;
+    }
+    if (st.done && player.passes.length === data.passes.length){ player.reset(); }
+    player.passes = data.passes;
+    paused = false;
+    player.play();
+  });
+  stepBtn.addEventListener('click', function(){ player.passes = data.passes; player.step(); });
+  skipBtn.addEventListener('click', function(){ player.passes = data.passes; player.skipToEnd(); });
+
+  document.querySelectorAll('[data-speed]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-speed]').forEach(function(x){ x.setAttribute('aria-pressed', x===b ? 'true':'false'); });
+      player.setSpeed(parseFloat(b.dataset.speed));
+    });
+  });
+
+  setTimeout(function(){ if (!player.state().playing && player.index === 0) player.play(); }, 900);
+})();
+</script>
+
+</body></html>

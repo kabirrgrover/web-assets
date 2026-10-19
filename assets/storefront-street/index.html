@@ -1,0 +1,220 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Storefront Street</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Kalam:wght@700&family=Oswald:wght@500&family=JetBrains+Mono:wght@400&display=swap">
+</head><body>
+<style>
+  /* Layout: a quiet centered masthead, a full-bleed street, then a narrow working column for controls and docs. */
+  :root {
+    --bg: #fbfaf9; --fg: #2b2624; --muted: #8a7f78; --line: #e8e2dc; --chip: #f2eeea;
+    --accent: #c8303a; --code-bg: #f4f1ee; --code-fg: #3a3230;
+    --f-display: 'Jost', 'Futura', 'Avenir Next', system-ui, sans-serif;
+    --f-body: 'Jost', 'Avenir Next', system-ui, sans-serif;
+    --f-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #16151b; --fg: #ece7e1; --muted: #9b928b; --line: #2e2c35; --chip: #23212a;
+    --accent: #ff6b6b; --code-bg: #1f1d25; --code-fg: #e4ddd6; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #16151b; --fg: #ece7e1; --muted: #9b928b; --line: #2e2c35; --chip: #23212a;
+    --accent: #ff6b6b; --code-bg: #1f1d25; --code-fg: #e4ddd6; color-scheme: dark; }
+
+  body { background: var(--bg); color: var(--fg); font: 400 15px/1.55 var(--f-body); }
+  .col { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+  header { text-align: center; padding-block: 56px 0; }
+  h1 { font: 300 clamp(34px, 6.4vw, 58px)/1 var(--f-display); letter-spacing: .09em; margin: 0; text-wrap: balance; }
+  .sub { margin-top: 8px; font-size: 12px; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); }
+  nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 26px; margin-top: 26px; }
+  nav button { font: inherit; font-size: 15px; color: var(--muted); background: none; border: 0; padding: 4px 0 6px; cursor: pointer; border-bottom: 1.5px solid transparent; }
+  nav button sup { font-size: 10px; margin-left: 4px; color: var(--muted); letter-spacing: .04em; }
+  nav button[aria-pressed="true"] { color: var(--fg); border-bottom-color: var(--fg); }
+  nav button[aria-pressed="true"] sup { color: var(--accent); }
+  nav button:disabled { cursor: default; opacity: .7; }
+  nav button:focus-visible, .ctl button:focus-visible, .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+  .street-wrap { margin-top: 120px; }
+  storefront-street { --ss-font-ui: var(--f-body); --ss-focus: var(--accent); }
+  .status { text-align: center; color: var(--muted); font-size: 13px; margin-top: 18px; min-height: 1.5em; }
+  .status b { color: var(--fg); font-weight: 500; }
+
+  .ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 28px; margin-top: 22px; font-size: 13px; color: var(--muted); }
+  .ctl label { display: flex; align-items: center; gap: 10px; }
+  .ctl input[type=range] { width: 120px; accent-color: var(--accent); }
+  .ctl output { font-variant-numeric: tabular-nums; color: var(--fg); min-width: 4.2em; }
+  .ctl button { font: inherit; font-size: 13px; color: var(--fg); background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; cursor: pointer; }
+
+  .docs { margin-top: 84px; padding-block: 40px 72px; border-top: 1px solid var(--line); }
+  h2 { font: 400 22px/1.2 var(--f-display); letter-spacing: .04em; margin: 0 0 8px; }
+  h3 { font: 500 12px/1.2 var(--f-body); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 36px 0 12px; }
+  p { margin: 0 0 12px; max-width: 64ch; }
+  .codebox { position: relative; }
+  pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; font: 12.5px/1.6 var(--f-mono); }
+  .copy { position: absolute; top: 10px; right: 10px; font: 500 11px var(--f-body); letter-spacing: .06em; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  code { font: 12.5px var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  .tbl { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 500; color: var(--muted); font-size: 12px; letter-spacing: .06em; }
+  td:first-child { white-space: nowrap; }
+  .types { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 24px; }
+  .types div { font-size: 13.5px; }
+  .types code { margin-right: 6px; }
+  @media (max-width: 480px) { header { padding-block: 36px 0; } .street-wrap { margin-top: 110px; } }
+</style>
+
+<header class="col">
+  <h1>SUGAR ROW</h1>
+  <div class="sub">Dessert guide · sample street</div>
+  <nav id="tabs" aria-label="Filter shops"></nav>
+</header>
+
+<div class="street-wrap">
+  <storefront-street id="street" speed="36" height="300"></storefront-street>
+</div>
+<div class="col">
+  <div class="status" id="status">Hover a shop to stop the street. Drag, swipe or scroll sideways to browse.</div>
+  <div class="ctl">
+    <label for="speed">Speed <input id="speed" type="range" min="0" max="120" value="36"><output id="speedOut">36 px/s</output></label>
+    <label for="height">Height <input id="height" type="range" min="180" max="380" value="300"><output id="heightOut">300 px</output></label>
+    <button type="button" id="dir">Reverse</button>
+    <button type="button" id="pause" aria-pressed="false">Pause</button>
+  </div>
+</div>
+
+<section class="col docs">
+  <h2>Use it in a project</h2>
+  <p>One script, no build step, no dependencies. Add the element, give it a list of shops, and it handles the loop, drag, wheel, keyboard focus, tooltips and dark mode.</p>
+
+  <h3>Drop in</h3>
+  <div class="codebox"><button class="copy" type="button" data-copy="snip1">Copy</button><pre id="snip1">&lt;script src="storefront-street.js"&gt;&lt;/script&gt;
+
+&lt;storefront-street speed="36" height="300"&gt;
+  &lt;script type="application/json"&gt;
+    [
+      { "name": "Crumb &amp; Co.", "type": "shop", "color": "#b8433b", "accent": "#2f7d55",
+        "meta": "Bakery · Valencia St", "note": "Kouign-amann, sells out by 10am." },
+      { "name": "Halfmoon", "type": "cafe", "accent": "#c8303a" }
+    ]
+  &lt;/script&gt;
+&lt;/storefront-street&gt;</pre></div>
+
+  <h3>Drive it from code</h3>
+  <div class="codebox"><button class="copy" type="button" data-copy="snip2">Copy</button><pre id="snip2">const street = document.querySelector('storefront-street');
+street.stores = await (await fetch('/api/places')).json();
+
+street.addEventListener('store-select', e =&gt; {
+  router.push(`/places/${e.detail.store.id}`);
+});
+
+street.pause();  street.play();  street.scrollToStore('halfmoon');</pre></div>
+
+  <h3>Building types</h3>
+  <div class="types">
+    <div><code>shop</code>Brick front, scalloped awning</div>
+    <div><code>cafe</code>Oval medallion sign, roof rail</div>
+    <div><code>walkup</code>Apartments, fire escape, shop below</div>
+    <div><code>kiosk</code>Striped walk-up window</div>
+    <div><code>gallery</code>Wide sign, long glowing window</div>
+    <div><code>modern</code>Dark facade, picket fence</div>
+    <div><code>cottage</code>Gabled roof, pastel glow</div>
+  </div>
+  <p style="margin-top:14px">Street props go in <code>before</code>: <code>tree</code>, <code>lamp</code>, <code>gap</code>, or <code>{ "type": "signpost", "label": "Main St" }</code>. Leave it out and props are picked for you.</p>
+
+  <h3>Shop fields</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Field</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>name</code></td><td>Painted on the sign and shown in the tooltip</td></tr>
+      <tr><td><code>type</code></td><td>One of the building types above (default <code>shop</code>)</td></tr>
+      <tr><td><code>color</code> / <code>accent</code> / <code>trim</code></td><td>Facade, sign or awning, and frame colors</td></tr>
+      <tr><td><code>sub</code>, <code>number</code>, <code>badge</code>, <code>mark</code></td><td>Small sign text, street number, badge word, logo glyph</td></tr>
+      <tr><td><code>meta</code>, <code>note</code></td><td>Tooltip lines</td></tr>
+      <tr><td><code>href</code></td><td>Makes the building a link instead of a button</td></tr>
+      <tr><td><code>width</code>, <code>height</code>, <code>floors</code></td><td>Override the template's proportions</td></tr>
+      <tr><td><code>before</code></td><td>Props drawn to the left of this shop</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Element attributes</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Attribute</th><th>Default</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>speed</code></td><td>36</td><td>Pixels per second. 0 makes it a drag-only street</td></tr>
+      <tr><td><code>height</code></td><td>300</td><td>Street height in px; widths scale with it</td></tr>
+      <tr><td><code>direction</code></td><td>left</td><td><code>right</code> reverses the drift</td></tr>
+      <tr><td><code>theme</code></td><td>auto</td><td>Follows <code>data-theme</code> on &lt;html&gt;, then the OS. Dark turns it into a night street</td></tr>
+      <tr><td><code>props</code></td><td>auto</td><td><code>none</code> turns off automatic trees and lamps</td></tr>
+      <tr><td><code>src</code></td><td></td><td>URL of a JSON file with the shop list</td></tr>
+      <tr><td><code>paused</code></td><td></td><td>Boolean. Reduced-motion users get a still street unless <code>motion="always"</code></td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px">Restyle from outside with CSS variables such as <code>--ss-ink</code>, <code>--ss-lit</code>, <code>--ss-glass</code>, <code>--ss-font-script</code> and <code>--ss-font-block</code>, or register a new building with <code>StorefrontStreet.templates.myType = (store, rand) =&gt; ({ w, top, body })</code>.</p>
+</section>
+
+<script src="./storefront-street.js"></script>
+<script>
+(() => {
+  const STORES = [{"id": "crumb", "name": "Crumb & Co.", "type": "shop", "category": "Bakeries", "color": "#b8433b", "accent": "#2f7d55", "sub": "BAKERY", "number": "214", "meta": "Bakery · Valencia St", "note": "Kouign-amann that sells out by 10am.", "before": [{"type": "signpost", "label": "Valencia St", "sub": "No. 214"}, "tree"]}, {"id": "halfmoon", "name": "Halfmoon", "type": "cafe", "category": "Coffee", "color": "#f4ecdc", "accent": "#c8303a", "sub": "COFFEE CORNER", "meta": "Cafe · 18th St", "note": "Cardamom bun and a cortado. Window seat if you can get it."}, {"id": "second-scoop", "name": "Second Scoop", "type": "walkup", "category": "Ice cream", "color": "#d7c39c", "accent": "#d63a82", "meta": "Creamery · Mission", "note": "Black sesame swirl. Line moves faster than it looks."}, {"id": "little-freezer", "name": "Little Freezer", "short": "SOFT", "type": "kiosk", "category": "Ice cream", "accent": "#d4283a", "badge": "since 98", "number": "432A", "meta": "Soft serve window · Clement St", "note": "Ube twist in a cone. Cash and card."}, {"id": "kettle", "name": "Kettle House", "type": "gallery", "category": "Tea", "accent": "#2f6b3a", "sub": "Stone-ground matcha", "mark": "茶", "meta": "Tea room · Japantown", "note": "Ceremonial matcha and a hojicha soft serve."}, {"id": "night-owl", "name": "NIGHT OWL", "type": "modern", "category": "Bakeries", "color": "#3a3a42", "accent": "#c98a3c", "meta": "Late bakery · Divisadero", "note": "Open till midnight. Get the miso cookie warm."}, {"id": "petal", "name": "Petal Mochi", "type": "cottage", "category": "Bakeries", "accent": "#8b4a2f", "trim": "#5a3b33", "glow": "#e7a8e0", "sub": "MOCHI & DAIFUKU", "badge": "open", "meta": "Mochi shop · Sunset", "note": "Strawberry daifuku, seasonal only."}, {"id": "rise", "name": "Rise Doughnuts", "type": "shop", "category": "Coffee", "color": "#e9e2d4", "accent": "#3d6fa8", "sub": "& COFFEE", "number": "77", "signColor": "#ffffff", "meta": "Doughnuts · Noe Valley", "note": "Brown butter old-fashioned with drip coffee."}];
+  const street = document.getElementById('street');
+  const status = document.getElementById('status');
+  const tabs = document.getElementById('tabs');
+  if (innerWidth < 520) { street.setAttribute('height', '230'); }
+  street.stores = STORES;
+
+  const cats = ['All', ...new Set(STORES.map(s => s.category))];
+  const count = c => c === 'All' ? STORES.length : STORES.filter(s => s.category === c).length;
+  let current = 'All';
+  try { const saved = localStorage.getItem('sugarrow-tab'); if (saved && cats.includes(saved)) current = saved; } catch (_) {}
+  function drawTabs() {
+    tabs.innerHTML = cats.map(c => `<button type="button" aria-pressed="${c === current}" data-c="${c}">${c}<sup>${count(c)}</sup></button>`).join('')
+      + `<button type="button" disabled>Bars<sup>soon</sup></button>`;
+  }
+  function apply() {
+    street.stores = current === 'All' ? STORES : STORES.filter(s => s.category === current);
+    drawTabs();
+  }
+  tabs.addEventListener('click', e => {
+    const b = e.target.closest('button[data-c]'); if (!b) return;
+    current = b.dataset.c; apply();
+    try { localStorage.setItem('sugarrow-tab', current); } catch (_) {}
+  });
+  apply();
+
+  street.addEventListener('store-select', e => {
+    const s = e.detail.store;
+    status.innerHTML = '';
+    const b = document.createElement('b'); b.textContent = s.name;
+    status.append(b, document.createTextNode(` · ${s.meta || ''} · ${s.note || ''}`));
+  });
+
+  const speed = document.getElementById('speed'), speedOut = document.getElementById('speedOut');
+  speed.addEventListener('input', () => { street.setAttribute('speed', speed.value); speedOut.textContent = speed.value + ' px/s'; });
+  const height = document.getElementById('height'), heightOut = document.getElementById('heightOut');
+  height.value = street.getAttribute('height'); heightOut.textContent = height.value + ' px';
+  height.addEventListener('change', () => street.setAttribute('height', height.value));
+  height.addEventListener('input', () => { heightOut.textContent = height.value + ' px'; });
+  document.getElementById('dir').addEventListener('click', () => {
+    street.setAttribute('direction', street.getAttribute('direction') === 'right' ? 'left' : 'right');
+  });
+  const pauseBtn = document.getElementById('pause');
+  pauseBtn.addEventListener('click', () => {
+    const on = pauseBtn.getAttribute('aria-pressed') !== 'true';
+    pauseBtn.setAttribute('aria-pressed', on); pauseBtn.textContent = on ? 'Play' : 'Pause';
+    on ? street.pause() : street.play();
+  });
+
+  document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', () => {
+    const pre = document.getElementById(btn.dataset.copy);
+    const done = () => { btn.textContent = 'Copied'; setTimeout(() => (btn.textContent = 'Copy'), 1400); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, fallback); } catch (_) { fallback(); }
+  }));
+
+  // Re-render once web fonts land so sign lettering measures correctly.
+  document.fonts?.ready.then(() => { street.stores = street.stores; });
+})();
+</script>
+
+</body></html>

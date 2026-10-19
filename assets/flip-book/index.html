@@ -1,0 +1,424 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Flip Book Component</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@200;300;400;500&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap">
+</head><body>
+<style>
+/* Layout: blueprint grid sheet, giant stacked mono title, the book as the hero object, docs below on the same grid */
+:root{
+  --bg:#f4f5f2; --ink:#16171b; --muted:#6b6f78; --rule:#d9dbe0;
+  --grid:rgba(60,100,210,.10); --grid-strong:rgba(60,100,210,.20); --tick:#7d95cf;
+  --blue:#3a6ee0; --code-bg:#ffffff; --chip:#e9ebef;
+  --display:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --spec:"Martian Mono","Geist Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111214; --ink:#ececea; --muted:#9097a3; --rule:#2a2d33;
+  --grid:rgba(110,145,240,.09); --grid-strong:rgba(110,145,240,.17); --tick:#6f86c4;
+  --blue:#6d95f2; --code-bg:#17181b; --chip:#22252b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111214; --ink:#ececea; --muted:#9097a3; --rule:#2a2d33;
+  --grid:rgba(110,145,240,.09); --grid-strong:rgba(110,145,240,.17); --tick:#6f86c4;
+  --blue:#6d95f2; --code-bg:#17181b; --chip:#22252b; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:
+    linear-gradient(var(--grid-strong) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-strong) 1px,transparent 1px),
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:96px 96px,96px 96px,24px 24px,24px 24px;background-position:-1px -1px}
+.wrap{max-width:880px;margin:0 auto}
+a{color:var(--blue)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+
+/* nav */
+.nav{display:flex;justify-content:space-between;align-items:center;padding-block:20px 12px}
+.brand{display:flex;align-items:center;gap:10px;font:500 17px/1 var(--body);color:var(--ink);text-decoration:none}
+.mark{width:22px;height:22px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.mark i{background:var(--blue)}.mark i.o{background:transparent}.mark i.l{opacity:.45}
+.navlink{font:400 13px/1 var(--mono);color:var(--ink);text-decoration:none;display:flex;gap:8px;align-items:center}
+.navlink:hover{color:var(--blue)}
+
+/* title */
+.title{position:relative;padding-block:22px 10px;border-block:1px solid var(--grid-strong)}
+.ruler{display:flex;justify-content:space-between;font:400 9px/1 var(--mono);color:var(--tick);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.title h1{margin:6px 0 0;font:300 clamp(72px,19vw,190px)/.86 var(--display);letter-spacing:-.04em}
+.title h1 span{display:block}
+.title h1 span+span{text-align:right}
+.title .meta{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font:400 10px/1.3 var(--mono);color:var(--tick)}
+
+/* hero book */
+.hero{padding-block:40px 18px}
+.hero flip-book{max-width:760px;margin:0 auto;cursor:grab}
+.hero flip-book:active{cursor:grabbing}
+.controls{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:34px;flex-wrap:wrap}
+.btn{font:500 12px/1 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:10px 14px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--ink)}
+.count{font:400 12px/1 var(--mono);color:var(--muted);min-width:76px;text-align:center;font-variant-numeric:tabular-nums}
+.hint{text-align:center;font:400 11px/1.4 var(--mono);color:var(--muted);margin-top:12px}
+
+/* docs */
+.docs{padding-block:56px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:56px}
+.docs section{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px;border-top:1px solid var(--rule);padding-top:18px;background:var(--bg)}
+.docs h2{margin:0;font:500 12px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.docs p{margin:0 0 14px;max-width:62ch}
+.docs p:last-child{margin-bottom:0}
+code{font:400 .88em/1 var(--mono);background:var(--chip);padding:2px 5px;border-radius:4px}
+.code{position:relative;background:var(--code-bg);border:1px solid var(--rule);border-radius:8px;margin:0 0 14px}
+.code pre{margin:0;padding:16px 18px;overflow-x:auto;font:400 12.5px/1.65 var(--mono);color:var(--ink)}
+.code .copy{position:absolute;top:8px;right:8px;min-height:30px;padding:6px 10px;font-size:11px}
+.code .k{color:var(--blue)}.code .c{color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--code-bg)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 11px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td:first-child{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td:nth-child(2){font-family:var(--mono);font-size:12.5px;color:var(--muted);white-space:nowrap}
+footer{border-top:1px solid var(--rule);padding-block:20px 40px;font:400 11px/1.4 var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--bg)}
+@media (max-width:640px){
+  .docs section{grid-template-columns:minmax(0,1fr);gap:12px}
+  .controls{gap:6px}
+  .btn{padding:9px 11px;font-size:11px}
+  .count{min-width:60px}
+  .title .meta span:nth-child(2){display:none}
+}
+
+/* ============ PAGE DESIGNS (all sized in cqw/cqh so they scale with the book) ============ */
+.pg{font-family:var(--display);color:#16171b;background:#fbfbf8}
+.pg-grid{background-image:linear-gradient(rgba(60,100,210,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(60,100,210,.09) 1px,transparent 1px);background-size:6.25cqw 6.25cqw}
+.pg .tiny{font:400 2.3cqw/1.3 var(--mono);color:#7d8696;letter-spacing:.02em}
+.pg .row{position:absolute;left:6cqw;right:6cqw;display:flex;justify-content:space-between}
+
+/* 0 cover */
+.p-cover .ghost{position:absolute;right:-8cqw;bottom:-10cqh;font:400 78cqw/.8 var(--display);color:rgba(22,23,27,.05);letter-spacing:-.06em}
+.p-cover h2{position:absolute;left:6cqw;right:6cqw;top:18cqh;margin:0;font:300 25cqw/.86 var(--display);letter-spacing:-.05em}
+.p-cover h2 span{display:block}.p-cover h2 span+span{text-align:right}
+.p-cover .logo{position:absolute;left:6cqw;bottom:13cqh;width:16cqw;height:16cqw;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.p-cover .logo i{background:#3a6ee0}.p-cover .logo i.o{background:transparent}.p-cover .logo i.l{background:#9db6ef}
+
+/* 1 bezier S */
+.p-bez svg{position:absolute;inset:8cqw 6cqw 14cqw}
+.p-bez{background:#f3f3ef}
+
+/* 2 oklch */
+.p-ok{background:#d5def3;background-image:repeating-linear-gradient(90deg,rgba(58,110,224,.22) 0 1.2cqw,transparent 1.2cqw 3cqw)}
+.p-ok .card{position:absolute;left:14cqw;right:14cqw;top:20cqh;bottom:22cqh;background:#eef2fb;border:.4cqw solid #3a6ee0;display:flex;flex-direction:column;justify-content:center;padding:0 9cqw;font:400 9.6cqw/1.12 var(--display);color:#2d5bc9;letter-spacing:-.02em}
+.p-ok .card b{font-weight:400;color:#16171b}
+
+/* 3 pixel ampersand */
+.p-pix{background:#141414}
+.p-pix .bits{position:absolute;left:12cqw;right:12cqw;top:12cqh;aspect-ratio:12/14;display:grid;grid-template-columns:repeat(12,1fr);gap:.6cqw}
+.p-pix .bits i{background:#2a2622;border-radius:.4cqw}.p-pix .bits i.on{background:#e3a248}
+.p-pix .row{bottom:6cqh}.p-pix .tiny{color:#8a7a62}
+.p-pix .term{position:absolute;left:12cqw;right:12cqw;bottom:13cqh;font:400 2.6cqw/1.5 var(--mono);color:#b9a585}
+
+/* 4 dark specimen */
+.p-spec{background:#121212;color:#f2efe8}
+.p-spec .abc{position:absolute;left:6cqw;right:6cqw;top:7cqh;font:600 8.6cqw/1.18 var(--spec);font-stretch:87.5%;letter-spacing:-.01em}
+.p-spec .abc div:nth-child(odd){color:#e3a248}
+.p-spec .para{position:absolute;left:6cqw;right:6cqw;bottom:8cqh;font:400 2.8cqw/1.55 var(--mono);color:#b8b3a8}
+
+/* 5 diacritics */
+.p-dia{background:#f6f7fb}
+.p-dia .blob{position:absolute;left:-10cqw;top:24cqh;width:110cqw;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 45% 45%,rgba(120,160,240,.0) 30%,rgba(90,135,230,.35) 48%,rgba(140,175,245,.15) 60%,transparent 70%);filter:blur(1.2cqw)}
+.p-dia .big{position:absolute;left:5cqw;right:5cqw;top:46cqh;font:300 17cqw/1 var(--display);letter-spacing:-.05em;color:#16171b}
+.p-dia .cols{position:absolute;left:6cqw;right:6cqw;top:8cqh;display:grid;grid-template-columns:1fr 1fr;gap:3cqw}
+
+/* 6 weights */
+.p-wt .w{position:absolute;left:6cqw;right:6cqw;top:8cqh;display:grid;gap:1.5cqh}
+.p-wt .w div{display:flex;justify-content:space-between;align-items:baseline;font:14cqw/1 var(--spec);letter-spacing:-.02em}
+.p-wt .w small{font:400 2.3cqw/1 var(--mono);color:#7d8696}
+
+/* 7 keys */
+.p-keys{background:#ecedea}
+.p-keys .list{position:absolute;left:6cqw;top:6cqh;font:800 9.4cqw/1.08 var(--spec);font-stretch:75%;letter-spacing:-.02em}
+.p-keys .list div:nth-child(3n+2){font-weight:300}
+.p-keys .sym{position:absolute;right:6cqw;top:8cqh;text-align:right;font:300 14cqw/1.05 var(--display)}
+
+/* 8 waves */
+.p-wave{background:#f4f6fc;background-image:repeating-radial-gradient(circle at 70% 120%,transparent 0 2.4cqw,rgba(58,110,224,.5) 2.4cqw 2.7cqw),repeating-radial-gradient(circle at 10% -20%,transparent 0 3.2cqw,rgba(58,110,224,.25) 3.2cqw 3.5cqw)}
+.p-wave .tilde{position:absolute;inset:0;display:grid;place-items:center;font:200 60cqw/1 var(--display);color:#16171b}
+.p-wave .row{bottom:5cqh}
+
+/* 9 fox */
+.p-fox{background:#151412}
+.p-fox .rot{position:absolute;left:50%;top:50%;width:92cqh;transform:translate(-50%,-50%) rotate(90deg);font:13cqw/1 var(--spec);color:#e3a248;letter-spacing:-.03em}
+.p-fox .rot div:nth-child(even){font-weight:200;color:#b38037}
+.p-fox .rot div:nth-child(odd){font-weight:800}
+
+/* 10 colophon */
+.p-colo .head{position:absolute;left:6cqw;top:7cqh;font:300 9cqw/1 var(--display);letter-spacing:-.03em}
+.p-colo dl{position:absolute;left:6cqw;right:6cqw;top:26cqh;margin:0;display:grid;grid-template-columns:1fr auto;font:400 3.4cqw/1 var(--mono)}
+.p-colo dt,.p-colo dd{margin:0;padding:2.4cqw 0;border-bottom:.25cqw solid #d9dbe0}
+.p-colo dd{text-align:right;color:#3a6ee0;font-variant-numeric:tabular-nums}
+
+/* 11 back cover */
+.p-back{background:#3a6ee0;color:#fff}
+.p-back .logo{position:absolute;left:50%;top:44%;width:22cqw;height:22cqw;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.p-back .logo i{background:#fff}.p-back .logo i.o{background:transparent}.p-back .logo i.l{background:rgba(255,255,255,.5)}
+.p-back .row{bottom:6cqh}.p-back .tiny{color:rgba(255,255,255,.75)}
+</style>
+
+<div class="wrap">
+  <nav class="nav">
+    <a class="brand" href="#top" id="top"><span class="mark" aria-hidden="true"><i></i><i></i><i class="o"></i><i></i><i class="l"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i></span>flip-book</a>
+    <a class="navlink" href="#usage">Use it <span aria-hidden="true">↓</span></a>
+  </nav>
+
+  <header class="title">
+    <div class="ruler" aria-hidden="true"><span>718</span><span>606</span><span>606</span><span>606</span><span>606</span><span>606</span><span>718</span></div>
+    <h1><span>flip</span><span>book</span></h1>
+    <div class="meta"><span>&lt;flip-book&gt; web component</span><span>0 dependencies · css 3d</span><span>v1.0</span></div>
+  </header>
+
+  <main class="hero">
+    <flip-book id="demo" autoplay interval="1700" duration="950" segments="16" curl="70" ratio="0.72" aria-label="Type specimen book">
+      <section class="pg pg-grid p-cover" data-hard>
+        <div class="ghost" aria-hidden="true">fb</div>
+        <div class="row" style="top:5cqh"><span class="tiny">flip-book</span><span class="tiny">variable</span></div>
+        <h2><span>flip</span><span>book</span></h2>
+        <div class="logo" aria-hidden="true"><i></i><i></i><i class="o"></i><i></i><i class="l"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i></div>
+        <div class="row" style="bottom:5cqh"><span class="tiny">by kabir</span><span class="tiny">for the love of pages</span></div>
+      </section>
+
+      <section class="pg p-bez">
+        <svg viewBox="0 0 200 280" fill="none" aria-hidden="true">
+          <path d="M150 62 C140 30 60 22 50 70 C40 118 160 128 152 196 C146 250 52 254 40 214" stroke="#16171b" stroke-width="7" stroke-linecap="round"/>
+          <g stroke="#3a6ee0" stroke-width="1" stroke-dasharray="3 3"><path d="M150 62 L140 30"/><path d="M60 22 L50 70 L40 118"/><path d="M160 128 L152 196 L146 250"/><path d="M52 254 L40 214"/></g>
+          <g fill="#fbfbf8" stroke="#3a6ee0" stroke-width="1.4"><rect x="146" y="58" width="8" height="8"/><rect x="46" y="66" width="8" height="8"/><rect x="148" y="192" width="8" height="8"/><rect x="36" y="210" width="8" height="8"/></g>
+          <g fill="#3a6ee0"><circle cx="140" cy="30" r="3.4"/><circle cx="60" cy="22" r="3.4"/><circle cx="40" cy="118" r="3.4"/><circle cx="160" cy="128" r="3.4"/><circle cx="146" cy="250" r="3.4"/><circle cx="52" cy="254" r="3.4"/></g>
+          <g fill="#7d8696" font-family="Geist Mono, monospace" font-size="6"><text x="158" y="64">150,62</text><text x="4" y="72">50,70</text><text x="160" y="198">152,196</text><text x="4" y="230">40,214</text></g>
+        </svg>
+        <div class="row" style="bottom:5cqh"><span class="tiny">S · 4 anchors · 6 handles</span><span class="tiny">01</span></div>
+      </section>
+
+      <section class="pg p-ok">
+        <div class="card">oklch(<b>62.4%</b><b>0.148</b><b>258°</b>)</div>
+        <div class="row" style="bottom:6cqh"><span class="tiny" style="color:#2d5bc9">accent / blue 500</span><span class="tiny" style="color:#2d5bc9">02</span></div>
+      </section>
+
+      <section class="pg p-pix">
+        <div class="bits" data-bitmap="amp" aria-hidden="true"></div>
+        <div class="term">$ flip-book --segments 16<br>&gt; rendering 12 pages, 6 leaves<br>&gt; ready_</div>
+        <div class="row"><span class="tiny">1-bit · 12×14</span><span class="tiny">03</span></div>
+      </section>
+
+      <section class="pg p-spec">
+        <div class="abc"><div>AaBbCcDdEe</div><div>FfGgHhIiJj</div><div>KkLlMmNnOo</div><div>PpQqRrSsTt</div><div>UuVvWwXxYz</div></div>
+        <div class="para">composition is rhythm. find it in graphic design, feel it in music. a page turn is a beat: the outer edge leads, the spine follows, and the paper settles back into the stack.</div>
+      </section>
+
+      <section class="pg p-dia">
+        <div class="blob" aria-hidden="true"></div>
+        <div class="cols"><span class="tiny">à á â ã ä å<br>è é ê ë ě ē<br>ì í î ï ĭ ī</span><span class="tiny">ò ó ô õ ö ő<br>ù ú û ü ů ű<br>ç ğ ł ñ ş ž</span></div>
+        <div class="big">àěîõü<br>ăâåãā</div>
+        <div class="row" style="bottom:5cqh"><span class="tiny">latin extended-a</span><span class="tiny">05</span></div>
+      </section>
+
+      <section class="pg p-wt">
+        <div class="w">
+          <div style="font-weight:100">AEIOU<small>100</small></div>
+          <div style="font-weight:300">àěîõü<small>300</small></div>
+          <div style="font-weight:500">FOLIO<small>500</small></div>
+          <div style="font-weight:800">åêïøû<small>800</small></div>
+          <div style="font-weight:800;font-stretch:75%">PAGES<small>800 / 75</small></div>
+        </div>
+        <div class="row" style="bottom:5cqh"><span class="tiny">wght 100 → 800</span><span class="tiny">06</span></div>
+      </section>
+
+      <section class="pg p-keys">
+        <div class="list"><div>Control</div><div>Alt/Opt</div><div>Command</div><div>Escape</div><div>Delete</div><div>Shift</div><div>Return</div><div>Back</div></div>
+        <div class="sym">21<br>{}<br>$#<br>←→</div>
+        <div class="row" style="bottom:5cqh"><span class="tiny">← → to turn</span><span class="tiny">07</span></div>
+      </section>
+
+      <section class="pg p-wave">
+        <div class="tilde" aria-hidden="true">~</div>
+        <div class="row"><span class="tiny">curl 70° · ease in-out cubic</span><span class="tiny">08</span></div>
+      </section>
+
+      <section class="pg p-fox">
+        <div class="rot"><div>the quick</div><div>brown fox</div><div>jumps over</div><div>the lazy dog</div></div>
+      </section>
+
+      <section class="pg pg-grid p-colo">
+        <div class="head">colophon</div>
+        <dl>
+          <dt>pages</dt><dd>12</dd>
+          <dt>leaves</dt><dd>6</dd>
+          <dt>segments / page</dt><dd>16</dd>
+          <dt>flip duration</dt><dd>950 ms</dd>
+          <dt>curl lead</dt><dd>70°</dd>
+          <dt>dependencies</dt><dd>0</dd>
+        </dl>
+        <div class="row" style="bottom:5cqh"><span class="tiny">set in geist mono + martian mono</span><span class="tiny">10</span></div>
+      </section>
+
+      <section class="pg p-back" data-hard>
+        <div class="logo" aria-hidden="true"><i></i><i></i><i class="o"></i><i></i><i class="l"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i></div>
+        <div class="row"><span class="tiny">flip-book</span><span class="tiny">end</span></div>
+      </section>
+    </flip-book>
+
+    <div class="controls">
+      <button class="btn" id="b-first" type="button">Close</button>
+      <button class="btn" id="b-prev" type="button">← Prev</button>
+      <span class="count" id="count" aria-live="polite">01 / 07</span>
+      <button class="btn" id="b-next" type="button">Next →</button>
+      <button class="btn" id="b-play" type="button">Pause</button>
+    </div>
+    <p class="hint">Drag a page, click either side, or focus the book and use the arrow keys.</p>
+  </main>
+
+  <div class="docs" id="usage">
+    <section>
+      <h2>Drop it in</h2>
+      <div>
+        <p>One script, one tag. Every direct child becomes a page, read in order: front cover, inside cover, then left/right spreads, ending on the back cover.</p>
+        <div class="code"><button class="btn copy" type="button">Copy</button><pre><span class="c">&lt;!-- load once --&gt;</span>
+&lt;script src="flip-book.js"&gt;&lt;/script&gt;
+
+&lt;flip-book <span class="k">autoplay interval</span>="1800" <span class="k">ratio</span>="0.72"&gt;
+  &lt;section <span class="k">data-hard</span>&gt;Cover&lt;/section&gt;
+  &lt;section&gt;Inside cover&lt;/section&gt;
+  &lt;section&gt;Page 2&lt;/section&gt;
+  &lt;section&gt;Page 3&lt;/section&gt;
+  &lt;section <span class="k">data-hard</span>&gt;Back cover&lt;/section&gt;
+&lt;/flip-book&gt;</pre></div>
+        <p>Pages are CSS size containers, so size type with <code>cqw</code> and <code>cqh</code> and the design scales with the book at any width.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Attributes</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Attribute</th><th>Default</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>autoplay</td><td>off</td><td>Turns pages on a timer. Pauses on interaction and when scrolled off screen.</td></tr>
+          <tr><td>interval</td><td>1800</td><td>Milliseconds between autoplay turns.</td></tr>
+          <tr><td>duration</td><td>900</td><td>Milliseconds per turn.</td></tr>
+          <tr><td>segments</td><td>16</td><td>Strips per page. Higher is a smoother curl and more DOM. 12 to 20 is the sweet spot.</td></tr>
+          <tr><td>curl</td><td>70</td><td>Degrees the outer edge leads the spine mid-turn. 0 gives a stiff card flip.</td></tr>
+          <tr><td>loop</td><td>on with autoplay</td><td>At the end, riffles back to the cover. Set <code>loop="false"</code> to stop.</td></tr>
+          <tr><td>resume</td><td>5000</td><td>Idle milliseconds after user input before autoplay resumes.</td></tr>
+          <tr><td>ratio</td><td>0.72</td><td>Page width divided by height.</td></tr>
+          <tr><td>tilt</td><td>0</td><td>Tips the book back in degrees for a tabletop look.</td></tr>
+          <tr><td>start</td><td>0</td><td>Spread to open on. 0 is closed on the front cover.</td></tr>
+          <tr><td>no-drag</td><td></td><td>Disables drag to turn. Clicks and keys still work.</td></tr>
+          <tr><td>no-center</td><td></td><td>Keeps the closed book in place instead of sliding it to center.</td></tr>
+          <tr><td>data-hard</td><td></td><td>On a page: that leaf turns stiff, like a cover board.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>Control it</h2>
+      <div>
+        <div class="code"><button class="btn copy" type="button">Copy</button><pre>const book = document.querySelector('flip-book');
+
+book.next();          <span class="c">// turn forward</span>
+book.prev();          <span class="c">// turn back</span>
+book.goTo(3);         <span class="c">// riffle to spread 3</span>
+book.pause(); book.play();
+
+book.spread;          <span class="c">// current spread, 0 = closed</span>
+book.spreads;         <span class="c">// total spreads</span>
+
+book.addEventListener('flip', e =&gt; console.log(e.detail));
+<span class="c">// { spread, spreads, direction }  fires as a turn starts</span>
+book.addEventListener('flipend', e =&gt; console.log(e.detail));</pre></div>
+        <p>Theme the paper with <code>--fb-paper</code>, the stack edge with <code>--fb-edge</code> and the drop shadow with <code>--fb-shadow</code>.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>React / Next</h2>
+      <div>
+        <div class="code"><button class="btn copy" type="button">Copy</button><pre><span class="c">// load once on the client, e.g. in a layout</span>
+'use client';
+import { useEffect, useRef } from 'react';
+
+export function Book({ children, ...props }) {
+  const ref = useRef(null);
+  useEffect(() =&gt; { import('./flip-book.js'); }, []);
+  return &lt;flip-book ref={ref} {...props}&gt;{children}&lt;/flip-book&gt;;
+}
+
+<span class="c">// &lt;Book autoplay="" interval="2000"&gt;&lt;section&gt;…&lt;/section&gt;&lt;/Book&gt;</span></pre></div>
+        <p>The element reads its pages once, on first connect. To swap content later, render a new <code>&lt;flip-book&gt;</code> with a different <code>key</code>.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <div>
+        <p>Each leaf is a front and back face. While a leaf turns, it is swapped for a chain of nested strips, each one rotated a little further than its parent, so the outer edge leads and the paper bends. Every strip carries a slice of the page and gets shaded by its angle. At rest the leaf goes back to two flat faces, so text stays crisp and the DOM stays light.</p>
+        <p>Content is cloned into the strips the first time a leaf turns. Keep pages visual; live inputs and video inside a page will not mirror into the curl.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer><span>flip-book v1.0</span><span>vanilla js · css 3d transforms · MIT-style, use it anywhere</span></footer>
+</div>
+
+<script src="./flip-book.js"></script>
+<script>
+(() => {
+  // 1-bit ampersand for page 03
+  const AMP = [
+    "....####....",
+    "...##..##...",
+    "..##....##..",
+    "..##....##..",
+    "...##..##...",
+    "....####....",
+    "...####..##.",
+    "..##..##.##.",
+    ".##....###..",
+    ".##.....##..",
+    ".##....####.",
+    "..##..##..##",
+    "...####....#",
+    "............"
+  ];
+  document.querySelectorAll('[data-bitmap="amp"]').forEach(el => {
+    el.innerHTML = AMP.join('').split('').map(c => `<i${c === '#' ? ' class="on"' : ''}></i>`).join('');
+  });
+
+  const book = document.getElementById('demo');
+  const count = document.getElementById('count');
+  const play = document.getElementById('b-play');
+  const pad = n => String(n).padStart(2, '0');
+  const sync = () => { count.textContent = `${pad(book.spread + 1)} / ${pad(book.spreads)}`; };
+  book.addEventListener('flip', sync);
+  customElements.whenDefined('flip-book').then(() => requestAnimationFrame(sync));
+  let playing = true;
+  document.getElementById('b-next').onclick = () => { book.next(); setPlaying(false); };
+  document.getElementById('b-prev').onclick = () => { book.prev(); setPlaying(false); };
+  document.getElementById('b-first').onclick = () => { book.goTo(0); setPlaying(false); };
+  play.onclick = () => setPlaying(!playing);
+  function setPlaying(v) {
+    playing = v;
+    if (v) { book.setAttribute('autoplay', ''); book.play(); } else { book.removeAttribute('autoplay'); book.pause(); }
+    play.textContent = v ? 'Pause' : 'Play';
+  }
+
+  document.querySelectorAll('.code .copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.nextElementSibling.innerText;
+      const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1400); };
+      const fallback = () => { const r = document.createRange(); r.selectNodeContents(btn.nextElementSibling); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; setTimeout(() => btn.textContent = 'Copy', 1400); };
+      try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>
+
+</body></html>

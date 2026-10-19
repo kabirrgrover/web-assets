@@ -1,0 +1,254 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Agent Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+</head><body>
+<style>
+/* Layout: one centered column. Live component first, controls under it, docs below. */
+:root{
+  --bg:#f5f5f6; --surface:#ffffff; --fg:#17171a; --muted:#6d6d76; --line:#e5e5e8; --accent:#1f6fd1; --code-bg:#ffffff;
+  --sans:"Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono:"Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141416;--surface:#1c1c1f;--fg:#f1f1f3;--muted:#9a9aa3;--line:#2b2b30;--accent:#7fb3f5;--code-bg:#1a1a1d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141416;--surface:#1c1c1f;--fg:#f1f1f3;--muted:#9a9aa3;--line:#2b2b30;--accent:#7fb3f5;--code-bg:#1a1a1d;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55;transition:background-color .45s,color .45s}
+main{max-width:900px;margin:0 auto;padding-block:48px 80px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:22px}
+.intro{display:flex;flex-direction:column;gap:6px;max-width:62ch}
+h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.025em;text-wrap:balance}
+.intro p{margin:0;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:2px}
+.seg button,.act{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:4px 10px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.act{background:var(--surface);border:1px solid var(--line);color:var(--fg);padding:5px 11px;border-radius:9px}
+.act:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grp{display:flex;align-items:center;gap:8px}
+.log{font-family:var(--mono);font-size:12px;color:var(--muted);min-height:1.5em}
+.docs{display:flex;flex-direction:column;gap:30px;margin-top:26px;border-top:1px solid var(--line);padding-top:30px}
+section{display:flex;flex-direction:column;gap:10px;min-width:0}
+h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+section > p{margin:0;max-width:66ch;color:var(--muted)}
+.code{position:relative;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;min-width:0}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;tab-size:2}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:3px 8px;cursor:pointer}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:12px;letter-spacing:.03em;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+td code,p code{font-family:var(--mono);font-size:12.5px;color:var(--fg)}
+td:first-child{white-space:nowrap}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:1px 7px;background:var(--surface)}
+</style>
+
+<main>
+  <div class="intro">
+    <h1>Agent Timeline</h1>
+    <p>A live activity timeline for a team of AI agents. Hover a bar to see its steps, click <b>Needs you</b> to approve, and watch handoffs draw themselves. Demo runs at accelerated time.</p>
+  </div>
+
+  <agent-timeline id="tl"></agent-timeline>
+
+  <div class="controls">
+    <div class="grp">Theme
+      <div class="seg" id="theme"><button type="button" data-v="auto" aria-pressed="true">System</button><button type="button" data-v="light" aria-pressed="false">Light</button><button type="button" data-v="dark" aria-pressed="false">Dark</button></div>
+    </div>
+    <div class="grp">Speed
+      <div class="seg" id="speed"><button type="button" data-v="1" aria-pressed="false">1×</button><button type="button" data-v="20" aria-pressed="true">20×</button><button type="button" data-v="60" aria-pressed="false">60×</button></div>
+    </div>
+    <button class="act" type="button" id="add">Add task</button>
+    <button class="act" type="button" id="replay">Replay</button>
+    <span class="log" id="log" aria-live="polite"></span>
+  </div>
+
+  <div class="docs">
+    <section>
+      <h2>Drop it in</h2>
+      <p>One file, no dependencies, no build step. It's a standard web component, so it works in plain HTML, React, Next.js, Vue or Svelte.</p>
+      <div class="code"><button class="copy" type="button">Copy</button><pre>&lt;script src="agent-timeline.js"&gt;&lt;/script&gt;
+&lt;agent-timeline id="tl" window="30"&gt;&lt;/agent-timeline&gt;
+
+&lt;script&gt;
+  const tl = document.getElementById('tl');
+  tl.setData({
+    agents: [
+      { id: 'res', name: 'Researcher', model: 'Opus 5.5', avatar: { glyph: 'burst', color: '#d4683f' } },
+      { id: 'ops', name: 'Ops', model: 'Gemini 3.8 Flash', avatar: { glyph: 'spark', color: '#2f6bf0' } },
+    ],
+    tasks: [
+      { id: 'a', agent: 'res', title: 'Competitor pricing', icons: ['google', 'notion'],
+        startMin: -28, endMin: -19, status: 'done' },
+      { id: 'b', agent: 'res', title: 'Customer interviews', icons: ['notion', 'slack'],
+        startMin: -9, status: 'running', steps: ['Read 14 interview notes', 'Grouping quotes by theme'] },
+      { id: 'c', agent: 'ops', title: 'Rotate API keys', icons: ['stripe', 'github'],
+        startMin: -11, status: 'needs-input',
+        prompt: { title: 'Rotate API keys', body: 'Rotate the production Stripe and OpenAI keys?' } },
+    ],
+  });
+
+  tl.addEventListener('task-approve', (e) =&gt; {
+    // call your backend here; the bar switches to running unless you e.preventDefault()
+    console.log('approved', e.detail.task.id);
+  });
+&lt;/script&gt;</pre></div>
+    </section>
+
+    <section>
+      <h2>React</h2>
+      <div class="code"><button class="copy" type="button">Copy</button><pre>import './agent-timeline.js';
+import { useEffect, useRef } from 'react';
+
+export function AgentsPanel({ agents, tasks, onApprove }) {
+  const ref = useRef(null);
+  useEffect(() =&gt; { ref.current?.setData({ agents, tasks }); }, [agents, tasks]);
+  useEffect(() =&gt; {
+    const el = ref.current;
+    const h = (e) =&gt; onApprove?.(e.detail.task);
+    el.addEventListener('task-approve', h);
+    return () =&gt; el.removeEventListener('task-approve', h);
+  }, [onApprove]);
+  return &lt;agent-timeline ref={ref} window="30" /&gt;;
+}</pre></div>
+    </section>
+
+    <section>
+      <h2>Task fields</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>string</td><td>Unique key. Auto-generated if missing.</td></tr>
+          <tr><td><code>agent</code></td><td>string</td><td>Agent id this bar sits on.</td></tr>
+          <tr><td><code>title</code></td><td>string</td><td>Bar label.</td></tr>
+          <tr><td><code>status</code></td><td>enum</td><td><code>running</code>, <code>done</code>, <code>failed</code>, <code>needs-input</code>, <code>queued</code></td></tr>
+          <tr><td><code>start</code> / <code>end</code></td><td>ms or Date</td><td>Timestamps. Leave <code>end</code> empty for live tasks; they grow to "now".</td></tr>
+          <tr><td><code>startMin</code> / <code>endMin</code></td><td>number</td><td>Shortcut: minutes relative to now. <code>-9</code> means 9 minutes ago.</td></tr>
+          <tr><td><code>icons</code></td><td>string[]</td><td>Tool keys shown before the title.</td></tr>
+          <tr><td><code>steps</code></td><td>string[]</td><td>Bullets in the hover tooltip.</td></tr>
+          <tr><td><code>after</code></td><td>string[]</td><td>Task ids this depends on. Draws a dashed handoff link.</td></tr>
+          <tr><td><code>prompt</code></td><td>object</td><td><code>{ title, body, approveLabel, rejectLabel }</code> for the approval popover.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>Methods and events</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Name</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>setData({agents, tasks})</code></td><td>Replace everything.</td></tr>
+          <tr><td><code>addTask(task)</code></td><td>Add a bar. Returns its id.</td></tr>
+          <tr><td><code>updateTask(id, patch)</code></td><td>Change status, title, steps. Setting <code>done</code> or <code>failed</code> stamps the end time.</td></tr>
+          <tr><td><code>completeTask(id, handoff?)</code></td><td>Finish a task and optionally start a linked follow-up on another agent.</td></tr>
+          <tr><td><code>removeTask(id)</code>, <code>addAgent</code>, <code>removeAgent</code>, <code>clear()</code></td><td>Housekeeping.</td></tr>
+          <tr><td><code>windowMinutes</code>, <code>speed</code>, <code>ranges</code></td><td>Visible window (default 30), clock multiplier, and the presets the "Last 30m" pill cycles through.</td></tr>
+          <tr><td><code>task-approve</code>, <code>task-reject</code></td><td>Cancelable. Call <code>preventDefault()</code> to manage state yourself.</td></tr>
+          <tr><td><code>task-click</code>, <code>task-hover</code></td><td>Fires with <code>e.detail.task</code>.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>Attributes and styling</h2>
+      <p>Attributes: <code>theme</code> (<code>light</code>, <code>dark</code>, or omit to follow the page), <code>window</code>, <code>speed</code>, <code>title</code>, <code>row-height</code>. CSS hooks: <code>--at-font</code>, <code>--at-radius</code>, <code>--at-label-width</code>, and <code>::part(card)</code>.</p>
+      <p>Built-in icon keys are neutral monogram tiles. Swap any for a real logo with <code>AgentTimeline.registerIcon('notion', {&nbsp;src: '/logos/notion.svg'&nbsp;})</code>, or pass <code>{ svg }</code> or <code>{ label, bg, fg }</code>.</p>
+      <div class="pills" id="iconkeys"></div>
+    </section>
+  </div>
+</main>
+
+<script src="./agent-timeline.js"></script>
+<script>
+(function(){
+  const tl = document.getElementById('tl');
+  const log = (m) => { document.getElementById('log').textContent = m; };
+
+  const agents = [
+    { id: 'res', name: 'Researcher', model: 'Opus 5.5',        avatar: { glyph: 'burst', color: '#d4683f' } },
+    { id: 'wri', name: 'Writer',     model: 'Sonnet 5.5',      avatar: { glyph: 'burst', color: '#d4683f' } },
+    { id: 'rev', name: 'Reviewer',   model: 'GPT-6 Sol',       avatar: { glyph: 'knot',  color: 'currentColor' } },
+    { id: 'ops', name: 'Ops',        model: 'Gemini 3.8 Flash',avatar: { glyph: 'spark', color: '#2f6bf0' } },
+  ];
+  const seed = () => ({ agents, tasks: [
+    { id: 'cp',  agent: 'res', title: 'Competitor pricing',  icons: ['google','notion'], startMin: -27, endMin: -19, status: 'done', steps: ['Pulled pricing for 9 competitors', 'Saved a comparison table to Notion'] },
+    { id: 'ci',  agent: 'res', title: 'Customer interviews', icons: ['notion','slack'],  startMin: -10, status: 'running', steps: ['Read 14 interview notes', 'Grouping quotes by theme'] },
+    { id: 'dp',  agent: 'wri', title: 'Draft pricing page',  icons: ['figma','notion'],  startMin: -18, status: 'running', after: ['cp'], steps: ['Outlined the page', 'Wrote plan copy and FAQ'] },
+    { id: 'pr',  agent: 'rev', title: 'PR #482 billing',     icons: ['github','linear'], startMin: -28, endMin: -20, status: 'done', steps: ['Reviewed 12 files', 'Left 3 comments, approved'] },
+    { id: 'crm', agent: 'ops', title: 'Sync CRM',            icons: ['hubspot'],         startMin: -25, endMin: -19, status: 'failed', steps: ['Rate limited by CRM API', 'Retried 3 times, then stopped'] },
+    { id: 'key', agent: 'ops', title: 'Rotate API keys',     icons: ['stripe','github'], startMin: -11, status: 'needs-input', steps: ['Generated new keys', 'Waiting for approval'],
+      prompt: { title: 'Rotate API keys', body: 'Rotate the production Stripe and OpenAI keys? Jobs reconnect in ~30 s.' } },
+  ]});
+
+  // Scripted story, in simulated minutes after start
+  let t0, fired;
+  const story = [
+    { at: 1.5, run: () => { tl.completeTask('dp', { id: 'rp', agent: 'rev', title: 'Review pricing page', icons: ['figma','github'], steps: ['Checking copy against brand rules'] }); log('Writer handed off to Reviewer'); } },
+    { at: 4,   run: () => { if (tl.getTask('key')?.status === 'needs-input') { tl.updateTask('key', { status: 'running', steps: ['Generated new keys', 'Swapping keys in production'] }); log('Auto-approved for the demo'); } } },
+    { at: 6,   run: () => { tl.completeTask('ci', { id: 'cs', agent: 'wri', title: 'Write case study', icons: ['notion'], steps: ['Picked 3 strongest quotes'] }); log('Researcher handed off to Writer'); } },
+    { at: 8.5, run: () => { const k = tl.getTask('key'); if (k && k.status === 'running') { tl.updateTask('key', { status: 'done' }); log('Keys rotated'); } } },
+    { at: 10,  run: () => { tl.completeTask('rp'); log('Review finished'); } },
+  ];
+  function start(){
+    tl.resetClock();
+    tl.setData(seed());
+    t0 = tl.now(); fired = new Set(); log('');
+  }
+  setInterval(() => {
+    const m = (tl.now() - t0) / 60000;
+    story.forEach((s, i) => { if (!fired.has(i) && m >= s.at) { fired.add(i); s.run(); } });
+  }, 200);
+
+  tl.speed = 20;
+  start();
+
+  tl.addEventListener('task-approve', (e) => log(`Approved: ${e.detail.task.title}`));
+  tl.addEventListener('task-reject',  (e) => log(`Rejected: ${e.detail.task.title}`));
+
+  const extras = [
+    ['Summarize standup', ['slack']], ['Triage inbox', ['gmail']], ['Backfill metrics', ['postgres','sheets']],
+    ['Update roadmap', ['linear','notion']], ['Deploy preview', ['vercel','github']], ['Scrape changelogs', ['web']],
+  ];
+  document.getElementById('add').addEventListener('click', () => {
+    const d = tl.getData();
+    const busy = new Set(d.tasks.filter(t => t.status === 'running' || t.status === 'needs-input').map(t => t.agent));
+    const free = d.agents.filter(a => !busy.has(a.id));
+    const pick = (free.length ? free : d.agents)[Math.floor(Math.random() * (free.length || d.agents.length))];
+    const [title, icons] = extras[Math.floor(Math.random() * extras.length)];
+    const needs = Math.random() < 0.3;
+    tl.addTask({ agent: pick.id, title, icons, status: needs ? 'needs-input' : 'running', steps: ['Started just now'],
+      prompt: needs ? { title, body: `${pick.name} wants to run "${title}". Continue?` } : undefined });
+    log(`${pick.name} started "${title}"`);
+  });
+  document.getElementById('replay').addEventListener('click', start);
+
+  function seg(id, fn){
+    const el = document.getElementById(id);
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      fn(b.dataset.v);
+    });
+  }
+  seg('theme', (v) => {
+    if (v === 'auto') { tl.removeAttribute('theme'); document.documentElement.removeAttribute('data-theme'); }
+    else { tl.setAttribute('theme', v); document.documentElement.setAttribute('data-theme', v); }
+  });
+  seg('speed', (v) => { tl.speed = +v; });
+
+  document.getElementById('iconkeys').innerHTML = Object.keys(AgentTimeline.icons).map(k => `<span class="pill">${k}</span>`).join('');
+
+  document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', () => {
+    const pre = btn.parentElement.querySelector('pre');
+    const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1400); };
+    try {
+      navigator.clipboard.writeText(pre.textContent).then(done, () => sel(pre));
+    } catch (e) { sel(pre); }
+  }));
+  function sel(el){ const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+})();
+</script>
+
+</body></html>
